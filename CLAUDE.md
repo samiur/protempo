@@ -53,8 +53,13 @@ ProTempo is a cross-platform mobile app that helps golfers improve swing consist
 - `components/PlaybackControls.tsx` - Play/pause/stop buttons for tempo playback
 - `components/SessionControls.tsx` - Delay slider and playback mode toggle
 - `components/TempoScreen.tsx` - Shared screen component for both Long Game and Short Game
+- `components/settings/SettingsSection.tsx` - Groups related settings with header
+- `components/settings/SettingsRow.tsx` - Flexible row supporting toggle, value, navigation, slider, segmented types
+- `components/settings/PresetPicker.tsx` - Modal for selecting tempo preset defaults
+- `components/settings/DelayPicker.tsx` - Modal for selecting delay between reps
 - `app/(tabs)/index.tsx` - Long Game screen (3:1 ratio presets)
 - `app/(tabs)/short-game.tsx` - Short Game screen (2:1 ratio presets)
+- `app/(tabs)/settings.tsx` - Settings screen with audio, defaults, display, and about sections
 
 ## Development Commands
 
