@@ -58,10 +58,28 @@ describe('Navigation', () => {
 
     it('displays play tone buttons', () => {
       render(<LongGameScreen />)
-      expect(screen.getByText('Play Tones')).toBeTruthy()
+      // Tone buttons are numbered 1, 2, 3 in the Audio Testing section
       expect(screen.getByText('1')).toBeTruthy()
       expect(screen.getByText('2')).toBeTruthy()
       expect(screen.getByText('3')).toBeTruthy()
+    })
+
+    it('displays playback controls', () => {
+      render(<LongGameScreen />)
+      expect(screen.getByText('Playback')).toBeTruthy()
+      expect(screen.getByText(/PLAY/)).toBeTruthy()
+    })
+
+    it('displays tempo selector', () => {
+      render(<LongGameScreen />)
+      expect(screen.getByText('Tempo')).toBeTruthy()
+      expect(screen.getByText('24/8')).toBeTruthy()
+    })
+
+    it('displays rep counter', () => {
+      render(<LongGameScreen />)
+      expect(screen.getByText('0')).toBeTruthy()
+      expect(screen.getByText('REPS')).toBeTruthy()
     })
   })
 
