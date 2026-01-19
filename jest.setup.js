@@ -1,6 +1,11 @@
 // ABOUTME: Jest setup file for global test configuration.
 // ABOUTME: Mocks native modules that aren't available in the test environment.
 
+// Mock AsyncStorage globally
+jest.mock('@react-native-async-storage/async-storage', () =>
+  require('@react-native-async-storage/async-storage/jest/async-storage-mock')
+)
+
 // Mock expo-av module globally (deprecated, but kept for backward compatibility)
 jest.mock('expo-av', () => {
   const mockSound = {
