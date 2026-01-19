@@ -48,6 +48,8 @@ ProTempo is a cross-platform mobile app that helps golfers improve swing consist
 - `stores/sessionStore.ts` - Zustand store for transient playback state
 - `lib/storage.ts` - Storage utilities for direct AsyncStorage access
 - `lib/audioManager.ts` - Legacy audio manager (expo-av, kept for backward compatibility)
+- `components/TempoSelector.tsx` - Horizontal scrollable tempo preset selector
+- `components/RepCounter.tsx` - Large rep count display for practice sessions
 
 ## Development Commands
 

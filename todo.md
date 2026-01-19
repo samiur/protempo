@@ -7,8 +7,8 @@
 
 ## Current Status
 
-**Phase:** Phase 3 - State Management (Complete)
-**Current Prompt:** Prompt 8 Complete, Ready for Prompt 9
+**Phase:** Phase 4 - UI Components (In Progress)
+**Current Prompt:** Prompt 9 Complete, Ready for Prompt 10
 **Blocking Issues:** None
 
 ---
@@ -77,10 +77,10 @@
 
 ### Phase 4: UI Components
 
-- [ ] **Prompt 9: Selection & Display Components**
-  - [ ] `components/TempoSelector.tsx` implemented
-  - [ ] `components/RepCounter.tsx` implemented
-  - [ ] Component tests passing
+- [x] **Prompt 9: Selection & Display Components**
+  - [x] `components/TempoSelector.tsx` implemented
+  - [x] `components/RepCounter.tsx` implemented
+  - [x] Component tests passing (26 tests)
   - [ ] Visual review done
 
 - [ ] **Prompt 10: Control Components**
@@ -182,6 +182,7 @@
 | 2026-01-19 | Prompt 6: Playback Service | Complete | playbackService.ts with timing loop, start/stop/pause/resume, Long Game UI updated with controls, 216 total tests |
 | 2026-01-19 | Prompt 7: Zustand Stores | Complete | settingsStore and sessionStore with full state management, 37 store tests, 253 total tests |
 | 2026-01-19 | Prompt 8: Storage Layer | Complete | AsyncStorage with Zustand persist middleware, hydration handling, 27 storage tests, 298 total tests |
+| 2026-01-19 | Prompt 9: Selection & Display Components | Complete | TempoSelector and RepCounter components with accessibility, 26 component tests, 324 total tests |
 
 ---
 
@@ -202,4 +203,4 @@
 
 ---
 
-*Last updated: January 19, 2026 (Prompt 8 complete)*
+*Last updated: January 19, 2026 (Prompt 9 complete)*
