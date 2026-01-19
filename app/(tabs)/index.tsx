@@ -6,7 +6,7 @@ import { Pressable, StyleSheet, Text, View, ScrollView } from 'react-native'
 
 import { colors, fontSizes, spacing } from '../../constants/theme'
 import { LONG_GAME_PRESETS, getPresetById } from '../../constants/tempos'
-import { createAudioManager, type AudioManager } from '../../lib/audioManager'
+import { useAudioManager } from '../../hooks/useAudioManager'
 import {
   createPlaybackService,
   type PlaybackService,
@@ -15,12 +15,16 @@ import {
 import type { ToneStyle, PlaybackMode } from '../../types/tempo'
 
 export default function LongGameScreen() {
-  const audioManagerRef = useRef<AudioManager | null>(null)
   const playbackServiceRef = useRef<PlaybackService | null>(null)
 
-  const [isLoaded, setIsLoaded] = useState(false)
-  const [toneStyle, setToneStyle] = useState<ToneStyle>('beep')
+  const [toneStyle, setToneStyleState] = useState<ToneStyle>('beep')
   const [status, setStatus] = useState<string>('Not loaded')
+
+  // Use the new audio manager hook
+  const { playTone, isLoaded, setVolume, currentVolume } = useAudioManager({
+    toneStyle,
+    volume: 1,
+  })
 
   // Playback state
   const [isPlaying, setIsPlaying] = useState(false)
@@ -31,16 +35,21 @@ export default function LongGameScreen() {
   const [delayBetweenReps, setDelayBetweenReps] = useState(4)
   const [playbackMode, setPlaybackMode] = useState<PlaybackMode>('continuous')
 
-  // Initialize audio manager and playback service
+  // Initialize playback service
   useEffect(() => {
-    audioManagerRef.current = createAudioManager()
     playbackServiceRef.current = createPlaybackService()
 
     return () => {
       playbackServiceRef.current?.stop()
-      audioManagerRef.current?.unloadAll()
     }
   }, [])
+
+  // Update status when audio loads
+  useEffect(() => {
+    if (isLoaded) {
+      setStatus('Audio loaded - ready to play')
+    }
+  }, [isLoaded])
 
   // Configure playback service when settings change
   useEffect(() => {
@@ -75,29 +84,23 @@ export default function LongGameScreen() {
       delayBetweenReps,
       mode: playbackMode,
       callbacks,
+      playTone,
     })
-  }, [selectedPresetId, delayBetweenReps, playbackMode])
-
-  const handlePreload = useCallback(async () => {
-    try {
-      setStatus('Loading...')
-      await audioManagerRef.current?.preloadAll()
-      setIsLoaded(true)
-      setStatus('Audio loaded - ready to play')
-    } catch (error) {
-      setStatus(`Error: ${error instanceof Error ? error.message : 'Unknown'}`)
-    }
-  }, [])
+  }, [selectedPresetId, delayBetweenReps, playbackMode, playTone])
 
   const handleStartPlayback = useCallback(async () => {
     if (!playbackServiceRef.current) return
+    if (!isLoaded) {
+      setStatus('Audio not loaded yet')
+      return
+    }
 
     try {
       await playbackServiceRef.current.start()
     } catch (error) {
       setStatus(`Error: ${error instanceof Error ? error.message : 'Unknown'}`)
     }
-  }, [])
+  }, [isLoaded])
 
   const handleStopPlayback = useCallback(() => {
     playbackServiceRef.current?.stop()
@@ -132,44 +135,40 @@ export default function LongGameScreen() {
     setPlaybackMode((prev) => (prev === 'continuous' ? 'single' : 'continuous'))
   }, [])
 
-  // Audio testing functions (keeping existing functionality)
-  const handlePlayTone = useCallback(async (toneNumber: 1 | 2 | 3) => {
-    if (!audioManagerRef.current?.isLoaded()) {
-      setStatus('Audio not loaded')
-      return
-    }
-    try {
-      setStatus(`Playing tone ${toneNumber}...`)
-      await audioManagerRef.current.playTone(toneNumber)
-      setStatus(`Played tone ${toneNumber}`)
-    } catch (error) {
-      setStatus(`Error: ${error instanceof Error ? error.message : 'Unknown'}`)
-    }
-  }, [])
+  // Audio testing functions
+  const handlePlayTone = useCallback(
+    async (toneNumber: 1 | 2 | 3) => {
+      if (!isLoaded) {
+        setStatus('Audio not loaded')
+        return
+      }
+      try {
+        setStatus(`Playing tone ${toneNumber}...`)
+        await playTone(toneNumber)
+        setStatus(`Played tone ${toneNumber}`)
+      } catch (error) {
+        setStatus(`Error: ${error instanceof Error ? error.message : 'Unknown'}`)
+      }
+    },
+    [isLoaded, playTone]
+  )
 
-  const handleToggleToneStyle = useCallback(async () => {
-    if (!audioManagerRef.current) return
+  const handleToggleToneStyle = useCallback(() => {
+    // Note: Changing tone style requires remounting with new style
+    // For now, just toggle the state - the hook will reinitialize
     const newStyle = toneStyle === 'beep' ? 'voice' : 'beep'
-    try {
-      setStatus(`Switching to ${newStyle}...`)
-      await audioManagerRef.current.setToneStyle(newStyle)
-      setToneStyle(newStyle)
-      setStatus(`Tone style: ${newStyle}`)
-    } catch (error) {
-      setStatus(`Error: ${error instanceof Error ? error.message : 'Unknown'}`)
-    }
+    setToneStyleState(newStyle)
+    setStatus(`Switching to ${newStyle}...`)
   }, [toneStyle])
 
-  const handleUnload = useCallback(async () => {
-    try {
-      handleStopPlayback()
-      await audioManagerRef.current?.unloadAll()
-      setIsLoaded(false)
-      setStatus('Audio unloaded')
-    } catch (error) {
-      setStatus(`Error: ${error instanceof Error ? error.message : 'Unknown'}`)
-    }
-  }, [handleStopPlayback])
+  const handleVolumeChange = useCallback(
+    (delta: number) => {
+      const newVolume = Math.max(0, Math.min(1, currentVolume + delta * 0.1))
+      setVolume(newVolume)
+      setStatus(`Volume: ${Math.round(newVolume * 100)}%`)
+    },
+    [currentVolume, setVolume]
+  )
 
   const selectedPreset = getPresetById(LONG_GAME_PRESETS, selectedPresetId)
 
@@ -279,13 +278,11 @@ export default function LongGameScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Audio Testing</Text>
 
-          <Pressable
-            style={[styles.button, isLoaded && styles.buttonDisabled]}
-            onPress={handlePreload}
-            disabled={isLoaded}
-          >
-            <Text style={styles.buttonText}>Preload Audio</Text>
-          </Pressable>
+          <View style={styles.loadingIndicator}>
+            <Text style={styles.loadingText}>
+              {isLoaded ? '✓ Audio Loaded' : '⏳ Loading audio...'}
+            </Text>
+          </View>
 
           <Pressable
             style={[styles.button, !isLoaded && styles.buttonDisabled]}
@@ -294,6 +291,19 @@ export default function LongGameScreen() {
           >
             <Text style={styles.buttonText}>Toggle Style ({toneStyle})</Text>
           </Pressable>
+
+          {/* Volume Control */}
+          <View style={styles.controlRow}>
+            <Text style={styles.controlLabel}>Volume: {Math.round(currentVolume * 100)}%</Text>
+            <View style={styles.controlButtons}>
+              <Pressable style={styles.controlButton} onPress={() => handleVolumeChange(-1)}>
+                <Text style={styles.controlButtonText}>-</Text>
+              </Pressable>
+              <Pressable style={styles.controlButton} onPress={() => handleVolumeChange(1)}>
+                <Text style={styles.controlButtonText}>+</Text>
+              </Pressable>
+            </View>
+          </View>
 
           <View style={styles.toneButtons}>
             <Pressable
@@ -318,14 +328,6 @@ export default function LongGameScreen() {
               <Text style={styles.buttonText}>3</Text>
             </Pressable>
           </View>
-
-          <Pressable
-            style={[styles.button, styles.buttonDanger, !isLoaded && styles.buttonDisabled]}
-            onPress={handleUnload}
-            disabled={!isLoaded}
-          >
-            <Text style={styles.buttonText}>Unload Audio</Text>
-          </Pressable>
         </View>
       </View>
     </ScrollView>
@@ -530,9 +532,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.inactive,
     opacity: 0.5,
   },
-  buttonDanger: {
-    backgroundColor: colors.error,
-  },
   buttonText: {
     color: colors.text,
     fontSize: fontSizes.md,
@@ -550,5 +549,16 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.lg,
     borderRadius: 8,
     alignItems: 'center',
+  },
+  loadingIndicator: {
+    padding: spacing.md,
+    backgroundColor: colors.surface,
+    borderRadius: 8,
+    marginBottom: spacing.sm,
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: fontSizes.md,
+    color: colors.textSecondary,
   },
 })

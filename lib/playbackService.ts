@@ -3,7 +3,6 @@
 
 import { TempoPreset, PlaybackMode } from '../types/tempo'
 import { calculateToneSequence, ToneSequence, TempoEngineConfig } from './tempoEngine'
-import { createAudioManager, AudioManager } from './audioManager'
 
 /**
  * Callbacks fired during playback for UI updates.
@@ -20,6 +19,11 @@ export interface PlaybackCallbacks {
 }
 
 /**
+ * Function to play a tone. Provided by the audio hook.
+ */
+export type PlayToneFunction = (toneNumber: 1 | 2 | 3) => Promise<void>
+
+/**
  * Configuration for the playback service.
  */
 export interface PlaybackConfig {
@@ -31,6 +35,8 @@ export interface PlaybackConfig {
   mode: PlaybackMode
   /** Callbacks for UI updates */
   callbacks: PlaybackCallbacks
+  /** Function to play a tone (provided by useAudioManager hook) */
+  playTone: PlayToneFunction
 }
 
 /**
@@ -66,7 +72,6 @@ export interface PlaybackService {
 export function createPlaybackService(): PlaybackService {
   let config: PlaybackConfig | null = null
   let sequence: ToneSequence | null = null
-  let audioManager: AudioManager | null = null
 
   let playing = false
   let paused = false
@@ -130,14 +135,14 @@ export function createPlaybackService(): PlaybackService {
    * This is synchronous to work properly with Jest fake timers.
    */
   function playCurrentTone(): void {
-    if (!config || !sequence || !audioManager || !playing || paused) {
+    if (!config || !sequence || !playing || paused) {
       return
     }
 
     const toneNumber = getToneNumber(currentToneIndex)
 
     // Play the tone (fire and forget for timing accuracy)
-    audioManager.playTone(toneNumber).catch(() => {
+    config.playTone(toneNumber).catch(() => {
       // Log but continue - audio errors shouldn't stop timing
     })
     config.callbacks.onTonePlayed(toneNumber)
@@ -249,12 +254,6 @@ export function createPlaybackService(): PlaybackService {
   return {
     configure(newConfig: PlaybackConfig): void {
       config = newConfig
-
-      // Create audio manager if needed
-      if (!audioManager) {
-        audioManager = createAudioManager()
-      }
-
       updateSequence()
     },
 
@@ -267,10 +266,8 @@ export function createPlaybackService(): PlaybackService {
         return // Already playing
       }
 
-      // Ensure audio is loaded
-      if (audioManager && !audioManager.isLoaded()) {
-        await audioManager.preloadAll()
-      }
+      // Note: Audio preloading is now handled by the useAudioManager hook
+      // The component should ensure audio is loaded before calling start()
 
       playing = true
       paused = false

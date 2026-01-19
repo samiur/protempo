@@ -97,6 +97,7 @@ describe('Playback Service', () => {
         delayBetweenReps: 4,
         mode: 'continuous',
         callbacks,
+        playTone: mockPlayTone,
       }
 
       expect(() => service.configure(config)).not.toThrow()
@@ -110,6 +111,7 @@ describe('Playback Service', () => {
         delayBetweenReps: 4,
         mode: 'continuous',
         callbacks,
+        playTone: mockPlayTone,
       })
 
       service.configure({
@@ -117,6 +119,7 @@ describe('Playback Service', () => {
         delayBetweenReps: 2,
         mode: 'single',
         callbacks,
+        playTone: mockPlayTone,
       })
 
       // Service should accept reconfiguration without error
@@ -132,6 +135,7 @@ describe('Playback Service', () => {
         delayBetweenReps: 4,
         mode: 'continuous',
         callbacks,
+        playTone: mockPlayTone,
       })
     })
 
@@ -176,6 +180,7 @@ describe('Playback Service', () => {
         delayBetweenReps: 4,
         mode: 'continuous',
         callbacks,
+        playTone: mockPlayTone,
       })
     })
 
@@ -250,6 +255,7 @@ describe('Playback Service', () => {
         delayBetweenReps: 4,
         mode: 'continuous',
         callbacks,
+        playTone: mockPlayTone,
       })
     })
 
@@ -288,6 +294,7 @@ describe('Playback Service', () => {
         delayBetweenReps: 4,
         mode: 'single',
         callbacks,
+        playTone: mockPlayTone,
       })
     })
 
@@ -322,6 +329,7 @@ describe('Playback Service', () => {
         delayBetweenReps: 4,
         mode: 'continuous',
         callbacks,
+        playTone: mockPlayTone,
       })
     })
 
@@ -377,6 +385,7 @@ describe('Playback Service', () => {
         delayBetweenReps: 4,
         mode: 'continuous',
         callbacks,
+        playTone: mockPlayTone,
       })
     })
 
@@ -424,6 +433,7 @@ describe('Playback Service', () => {
         delayBetweenReps: 4,
         mode: 'continuous',
         callbacks,
+        playTone: mockPlayTone,
       })
     })
 
@@ -477,6 +487,7 @@ describe('Playback Service', () => {
         delayBetweenReps: 4,
         mode: 'continuous',
         callbacks,
+        playTone: mockPlayTone,
       })
     })
 
@@ -523,6 +534,7 @@ describe('Playback Service', () => {
         delayBetweenReps: 4,
         mode: 'continuous',
         callbacks,
+        playTone: mockPlayTone,
       })
     })
 
@@ -573,6 +585,7 @@ describe('Playback Service', () => {
         delayBetweenReps: 4,
         mode: 'continuous',
         callbacks,
+        playTone: mockPlayTone,
       })
     })
 
@@ -607,6 +620,7 @@ describe('Playback Service', () => {
         delayBetweenReps: 4,
         mode: 'continuous',
         callbacks,
+        playTone: mockPlayTone,
       })
 
       for (let i = 0; i < 5; i++) {
@@ -626,6 +640,7 @@ describe('Playback Service', () => {
         delayBetweenReps: 2,
         mode: 'continuous',
         callbacks,
+        playTone: mockPlayTone,
       })
 
       await service.start()
@@ -646,6 +661,7 @@ describe('Playback Service', () => {
         delayBetweenReps: 10,
         mode: 'continuous',
         callbacks,
+        playTone: mockPlayTone,
       })
 
       await service.start()
@@ -670,6 +686,7 @@ describe('Playback Service', () => {
         delayBetweenReps: 4,
         mode: 'continuous',
         callbacks,
+        playTone: mockPlayTone,
       })
 
       service.configure({
@@ -677,6 +694,7 @@ describe('Playback Service', () => {
         delayBetweenReps: 4,
         mode: 'single',
         callbacks,
+        playTone: mockPlayTone,
       })
 
       expect(() => service.isPlaying()).not.toThrow()
@@ -691,6 +709,7 @@ describe('Playback Service', () => {
         delayBetweenReps: 2,
         mode: 'continuous',
         callbacks,
+        playTone: mockPlayTone,
       })
 
       await service.start()

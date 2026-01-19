@@ -53,7 +53,8 @@ describe('Navigation', () => {
     it('displays audio testing controls', () => {
       render(<LongGameScreen />)
       expect(screen.getByText('Audio Testing')).toBeTruthy()
-      expect(screen.getByText('Preload Audio')).toBeTruthy()
+      // Audio now auto-loads, so we show loading state indicator
+      expect(screen.getByText(/Audio Loaded|Loading audio/)).toBeTruthy()
     })
 
     it('displays play tone buttons', () => {

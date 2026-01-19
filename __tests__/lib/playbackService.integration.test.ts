@@ -75,6 +75,7 @@ describe('Playback Service Integration', () => {
         delayBetweenReps: 4,
         mode: 'single',
         callbacks,
+        playTone: mockPlayTone,
       })
 
       startTime = Date.now()
@@ -140,6 +141,7 @@ describe('Playback Service Integration', () => {
         delayBetweenReps: 2,
         mode: 'continuous',
         callbacks,
+        playTone: mockPlayTone,
       })
 
       startTime = Date.now()
@@ -174,6 +176,7 @@ describe('Playback Service Integration', () => {
         delayBetweenReps: 4,
         mode: 'single',
         callbacks,
+        playTone: mockPlayTone,
       })
 
       await service.start()
@@ -192,6 +195,7 @@ describe('Playback Service Integration', () => {
         delayBetweenReps: 4,
         mode: 'single',
         callbacks,
+        playTone: mockPlayTone,
       })
 
       await service.start()
@@ -203,8 +207,9 @@ describe('Playback Service Integration', () => {
       expect(mockPlayTone).toHaveBeenCalledTimes(3)
     })
 
-    it('should preload audio if not loaded', async () => {
-      mockIsLoaded.mockReturnValue(false)
+    it('should use provided playTone function when playing tones', async () => {
+      // The playback service now receives a playTone function as a callback
+      // rather than managing its own audio - preloading is handled by the hook
       const preset = getPresetById(LONG_GAME_PRESETS, '24/8')!
 
       service.configure({
@@ -212,11 +217,13 @@ describe('Playback Service Integration', () => {
         delayBetweenReps: 4,
         mode: 'single',
         callbacks,
+        playTone: mockPlayTone,
       })
 
       await service.start()
 
-      expect(mockPreloadAll).toHaveBeenCalled()
+      // First tone should be played immediately
+      expect(mockPlayTone).toHaveBeenCalledWith(1)
     })
   })
 
@@ -230,6 +237,7 @@ describe('Playback Service Integration', () => {
         delayBetweenReps: 4,
         mode: 'continuous',
         callbacks,
+        playTone: mockPlayTone,
       })
 
       await service.start()
@@ -258,6 +266,7 @@ describe('Playback Service Integration', () => {
         delayBetweenReps: 2,
         mode: 'continuous',
         callbacks,
+        playTone: mockPlayTone,
       })
 
       await service.start()
@@ -277,6 +286,7 @@ describe('Playback Service Integration', () => {
         delayBetweenReps: 10,
         mode: 'continuous',
         callbacks,
+        playTone: mockPlayTone,
       })
 
       await service.start()
@@ -301,6 +311,7 @@ describe('Playback Service Integration', () => {
         delayBetweenReps: 2,
         mode: 'continuous',
         callbacks,
+        playTone: mockPlayTone,
       })
 
       await service.start()
@@ -333,6 +344,7 @@ describe('Playback Service Integration', () => {
         delayBetweenReps: 2,
         mode: 'continuous',
         callbacks,
+        playTone: mockPlayTone,
       })
 
       await service.start()
