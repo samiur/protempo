@@ -25,6 +25,29 @@ jest.mock('expo-av', () => {
   }
 })
 
+// Mock @react-native-community/slider
+jest.mock('@react-native-community/slider', () => {
+  const React = require('react')
+  const { View } = require('react-native')
+
+  return {
+    __esModule: true,
+    default: (props) => {
+      return React.createElement(View, {
+        testID: props.testID,
+        accessibilityRole: props.accessibilityRole || 'adjustable',
+        accessibilityLabel: props.accessibilityLabel,
+        minimumValue: props.minimumValue,
+        maximumValue: props.maximumValue,
+        step: props.step,
+        value: props.value,
+        disabled: props.disabled,
+        onValueChange: props.onValueChange,
+      })
+    },
+  }
+})
+
 // Mock expo-audio module globally
 jest.mock('expo-audio', () => {
   const mockPlayer = {
