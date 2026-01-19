@@ -44,8 +44,9 @@ ProTempo is a cross-platform mobile app that helps golfers improve swing consist
 - `lib/tempoEngine.ts` - Pure timing calculation functions
 - `hooks/useAudioManager.ts` - React hook for audio playback (expo-audio)
 - `lib/playbackService.ts` - Orchestrates timing and audio for practice sessions
-- `stores/settingsStore.ts` - Zustand store for persistent user preferences
+- `stores/settingsStore.ts` - Zustand store for persistent user preferences (auto-persisted to AsyncStorage)
 - `stores/sessionStore.ts` - Zustand store for transient playback state
+- `lib/storage.ts` - Storage utilities for direct AsyncStorage access
 - `lib/audioManager.ts` - Legacy audio manager (expo-av, kept for backward compatibility)
 
 ## Development Commands
@@ -114,9 +115,19 @@ Audio playback uses expo-audio via the `useAudioManager` hook. This hook:
 
 The playback service accepts a `playTone` callback from the hook rather than managing audio directly.
 
+### Storage Persistence
+
+The `settingsStore` uses Zustand's `persist` middleware with AsyncStorage for automatic persistence. Key points:
+- Settings auto-save on every change
+- `_hasHydrated` flag tracks when storage has loaded
+- Use `useSettingsStore.persist.rehydrate()` to manually trigger rehydration if needed
+- Storage key: `protempo:settings`
+
+The `lib/storage.ts` provides standalone utilities for direct AsyncStorage access if needed.
+
 ### Jest Mocking
 
-Both expo-av and expo-audio modules have native dependencies that aren't available in Jest. Global mocks are configured in `jest.setup.js`. For tests that need specific mock behavior, define local mocks before importing the module under test.
+Both expo-av, expo-audio, and AsyncStorage modules have native dependencies that aren't available in Jest. Global mocks are configured in `jest.setup.js`. For tests that need specific mock behavior, define local mocks before importing the module under test.
 
 ### Asset Loading
 
