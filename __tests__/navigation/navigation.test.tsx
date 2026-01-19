@@ -118,9 +118,24 @@ describe('Navigation', () => {
       expect(screen.getByText('Settings')).toBeTruthy()
     })
 
-    it('displays placeholder text', () => {
+    it('displays audio section', () => {
       render(<SettingsScreen />)
-      expect(screen.getByText('Coming soon')).toBeTruthy()
+      expect(screen.getByTestId('settings-section-AUDIO')).toBeTruthy()
+    })
+
+    it('displays defaults section', () => {
+      render(<SettingsScreen />)
+      expect(screen.getByTestId('settings-section-DEFAULTS')).toBeTruthy()
+    })
+
+    it('displays display section', () => {
+      render(<SettingsScreen />)
+      expect(screen.getByTestId('settings-section-DISPLAY')).toBeTruthy()
+    })
+
+    it('displays about section', () => {
+      render(<SettingsScreen />)
+      expect(screen.getByTestId('settings-section-ABOUT')).toBeTruthy()
     })
   })
 })
