@@ -2,11 +2,12 @@
 // ABOUTME: Verifies audio playback, volume control, and tone style handling.
 
 import { renderHook, act, waitFor } from '@testing-library/react-native'
-import { useAudioPlayer, setAudioModeAsync } from 'expo-audio'
+import { useAudioPlayer, useAudioPlayerStatus, setAudioModeAsync } from 'expo-audio'
 import { useAudioManager } from '../../hooks/useAudioManager'
 
 // Get mock function references
 const mockUseAudioPlayer = useAudioPlayer as jest.Mock
+const mockUseAudioPlayerStatus = useAudioPlayerStatus as jest.Mock
 const mockSetAudioModeAsync = setAudioModeAsync as jest.Mock
 
 describe('useAudioManager', () => {
@@ -78,6 +79,7 @@ describe('useAudioManager', () => {
 
     it('should return false when player is not loaded', () => {
       mockUseAudioPlayer.mockReturnValue({ isLoaded: false })
+      mockUseAudioPlayerStatus.mockReturnValue({ isLoaded: false })
 
       const { result } = renderHook(() => useAudioManager({ toneStyle: 'beep' }))
 

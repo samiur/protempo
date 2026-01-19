@@ -2,7 +2,7 @@
 // ABOUTME: Provides preloading and playTone function for tempo training tones.
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useAudioPlayer, setAudioModeAsync } from 'expo-audio'
+import { useAudioPlayer, useAudioPlayerStatus, setAudioModeAsync } from 'expo-audio'
 import type { AudioPlayer } from 'expo-audio'
 import type { ToneStyle } from '../types/tempo'
 
@@ -53,6 +53,13 @@ export function useAudioManager(options: UseAudioManagerOptions = {}): UseAudioM
   const voiceDownPlayer = useAudioPlayer(toneStyle === 'voice' ? AUDIO_SOURCES.voiceDown : null)
   const voiceHitPlayer = useAudioPlayer(toneStyle === 'voice' ? AUDIO_SOURCES.voiceHit : null)
 
+  // Use reactive status hooks to get loading state updates
+  // The player.isLoaded property is NOT reactive - must use useAudioPlayerStatus
+  const beepStatus = useAudioPlayerStatus(beepPlayer)
+  const voiceBackStatus = useAudioPlayerStatus(voiceBackPlayer)
+  const voiceDownStatus = useAudioPlayerStatus(voiceDownPlayer)
+  const voiceHitStatus = useAudioPlayerStatus(voiceHitPlayer)
+
   // Configure audio mode on mount
   useEffect(() => {
     async function configureAudio() {
@@ -84,13 +91,13 @@ export function useAudioManager(options: UseAudioManagerOptions = {}): UseAudioM
     })
   }, [currentVolume, beepPlayer, voiceBackPlayer, voiceDownPlayer, voiceHitPlayer])
 
-  // Check if audio is loaded
+  // Check if audio is loaded using reactive status hooks
   const isLoaded =
     toneStyle === 'beep'
-      ? (beepPlayer?.isLoaded ?? false)
-      : (voiceBackPlayer?.isLoaded ?? false) &&
-        (voiceDownPlayer?.isLoaded ?? false) &&
-        (voiceHitPlayer?.isLoaded ?? false)
+      ? (beepStatus?.isLoaded ?? false)
+      : (voiceBackStatus?.isLoaded ?? false) &&
+        (voiceDownStatus?.isLoaded ?? false) &&
+        (voiceHitStatus?.isLoaded ?? false)
 
   // Get the correct player for a tone number
   const getPlayerForTone = useCallback(

@@ -34,13 +34,16 @@ export const useAudioPlayer = jest.fn((_source) => {
   return { ...mockPlayer }
 })
 
-export const useAudioPlayerStatus = jest.fn((_player) => ({
-  playing: false,
-  isLoaded: true,
-  isBuffering: false,
-  currentTime: 0,
-  duration: 1,
-}))
+export const useAudioPlayerStatus = jest.fn((_player) => {
+  // Return status based on the player's current state
+  return {
+    playing: _player?.playing ?? false,
+    isLoaded: _player?.isLoaded ?? true,
+    isBuffering: _player?.isBuffering ?? false,
+    currentTime: _player?.currentTime ?? 0,
+    duration: _player?.duration ?? 1,
+  }
+})
 
 export const setAudioModeAsync = jest.fn().mockResolvedValue(undefined)
 export const setIsAudioActiveAsync = jest.fn().mockResolvedValue(undefined)
