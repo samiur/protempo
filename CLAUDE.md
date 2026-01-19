@@ -14,7 +14,7 @@ ProTempo is a cross-platform mobile app that helps golfers improve swing consist
 | Language | TypeScript (strict mode) |
 | Navigation | Expo Router |
 | State | Zustand |
-| Audio | expo-av |
+| Audio | expo-audio |
 | Storage | AsyncStorage |
 | Testing | Jest + React Native Testing Library |
 | Linting | ESLint + Prettier |
@@ -32,7 +32,7 @@ ProTempo is a cross-platform mobile app that helps golfers improve swing consist
 ├── hooks/                  # Custom React hooks
 ├── assets/audio/           # Audio files (WAV)
 ├── __tests__/              # Test files
-└── __mocks__/              # Jest module mocks (expo-av, etc.)
+└── __mocks__/              # Jest module mocks (expo-audio, expo-av)
 ```
 
 ## Key Files
@@ -42,10 +42,11 @@ ProTempo is a cross-platform mobile app that helps golfers improve swing consist
 - `docs/PRD.md` - Product requirements document
 - `jest.setup.js` - Global Jest setup with module mocks
 - `lib/tempoEngine.ts` - Pure timing calculation functions
-- `lib/audioManager.ts` - Audio playback management (expo-av wrapper)
+- `hooks/useAudioManager.ts` - React hook for audio playback (expo-audio)
 - `lib/playbackService.ts` - Orchestrates timing and audio for practice sessions
 - `stores/settingsStore.ts` - Zustand store for persistent user preferences
 - `stores/sessionStore.ts` - Zustand store for transient playback state
+- `lib/audioManager.ts` - Legacy audio manager (expo-av, kept for backward compatibility)
 
 ## Development Commands
 
@@ -103,9 +104,19 @@ This project follows a structured 15-prompt implementation plan. When working on
 
 ## Implementation Notes
 
-### expo-av Mocking
+### expo-audio Hook
 
-The expo-av module has native dependencies that aren't available in Jest. A global mock is configured in `jest.setup.js`. For tests that need specific mock behavior (like `audioManager.test.ts`), define local mocks before importing the module under test.
+Audio playback uses expo-audio via the `useAudioManager` hook. This hook:
+- Auto-loads audio files when mounted
+- Provides `playTone`, `setVolume`, and `isLoaded` state
+- Manages audio mode configuration for silent mode and background playback
+- Requires `seekTo(0)` before replay (expo-audio doesn't auto-reset position)
+
+The playback service accepts a `playTone` callback from the hook rather than managing audio directly.
+
+### Jest Mocking
+
+Both expo-av and expo-audio modules have native dependencies that aren't available in Jest. Global mocks are configured in `jest.setup.js`. For tests that need specific mock behavior, define local mocks before importing the module under test.
 
 ### Asset Loading
 
