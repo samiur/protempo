@@ -50,9 +50,18 @@ describe('Navigation', () => {
       expect(screen.getByText('Long Game')).toBeTruthy()
     })
 
-    it('displays placeholder text', () => {
+    it('displays audio testing controls', () => {
       render(<LongGameScreen />)
-      expect(screen.getByText('Coming soon')).toBeTruthy()
+      expect(screen.getByText('Audio Testing')).toBeTruthy()
+      expect(screen.getByText('Preload Audio')).toBeTruthy()
+    })
+
+    it('displays play tone buttons', () => {
+      render(<LongGameScreen />)
+      expect(screen.getByText('Play Tones')).toBeTruthy()
+      expect(screen.getByText('1')).toBeTruthy()
+      expect(screen.getByText('2')).toBeTruthy()
+      expect(screen.getByText('3')).toBeTruthy()
     })
   })
 
