@@ -1,7 +1,7 @@
 // ABOUTME: Long Game screen for 3:1 tempo training.
 // ABOUTME: Wires together all components, stores, and playback service for tempo practice.
 
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { StyleSheet, Text, View, ScrollView } from 'react-native'
 
 import { colors, fontSizes, spacing } from '../../constants/theme'
@@ -22,6 +22,7 @@ import SessionControls from '../../components/SessionControls'
 
 export default function LongGameScreen() {
   const playbackServiceRef = useRef<PlaybackService | null>(null)
+  const [isConfigured, setIsConfigured] = useState(false)
 
   // Settings store - persistent preferences
   const toneStyle = useSettingsStore((s) => s.toneStyle)
@@ -96,6 +97,7 @@ export default function LongGameScreen() {
       callbacks,
       playTone,
     })
+    setIsConfigured(true)
   }, [
     currentPresetId,
     delayBetweenReps,
@@ -109,7 +111,7 @@ export default function LongGameScreen() {
 
   // Handlers
   const handlePlay = useCallback(async () => {
-    if (!playbackServiceRef.current || !isLoaded) return
+    if (!playbackServiceRef.current || !isLoaded || !isConfigured) return
 
     if (isPaused) {
       playbackServiceRef.current.resume()
@@ -117,7 +119,7 @@ export default function LongGameScreen() {
     } else {
       await playbackServiceRef.current.start()
     }
-  }, [isLoaded, isPaused, setPaused])
+  }, [isLoaded, isConfigured, isPaused, setPaused])
 
   const handlePause = useCallback(() => {
     playbackServiceRef.current?.pause()
@@ -181,7 +183,7 @@ export default function LongGameScreen() {
             onPlay={handlePlay}
             onPause={handlePause}
             onStop={handleStop}
-            disabled={!isLoaded}
+            disabled={!isLoaded || !isConfigured}
           />
         </View>
 
@@ -194,9 +196,9 @@ export default function LongGameScreen() {
           />
         </View>
 
-        {!isLoaded && (
+        {(!isLoaded || !isConfigured) && (
           <View style={styles.loadingContainer}>
-            <Text style={styles.loadingText}>Loading audio...</Text>
+            <Text style={styles.loadingText}>Loading...</Text>
           </View>
         )}
       </View>
