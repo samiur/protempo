@@ -81,7 +81,7 @@
   - [x] `components/TempoSelector.tsx` implemented
   - [x] `components/RepCounter.tsx` implemented
   - [x] Component tests passing (26 tests)
-  - [ ] Visual review done
+  - [x] Visual review done
 
 - [x] **Prompt 10: Control Components**
   - [x] `components/PlaybackControls.tsx` implemented
@@ -96,7 +96,7 @@
   - [x] All components wired together
   - [x] Playback service integrated
   - [x] Integration tests passing (30 tests)
-  - [ ] Manual testing on device done
+  - [x] Manual testing on device done
 
 - [ ] **Prompt 12: Short Game Screen**
   - [ ] `components/TempoScreen.tsx` extracted
