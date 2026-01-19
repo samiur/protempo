@@ -86,8 +86,9 @@ npm run typecheck
 ├── constants/              # Constants and configuration
 ├── types/                  # TypeScript type definitions
 ├── hooks/                  # Custom React hooks
-├── assets/audio/           # Audio files
-└── __tests__/              # Test files
+├── assets/audio/           # Audio files (WAV)
+├── __tests__/              # Test files
+└── __mocks__/              # Jest module mocks
 ```
 
 ## Documentation

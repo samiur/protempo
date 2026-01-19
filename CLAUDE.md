@@ -30,8 +30,9 @@ ProTempo is a cross-platform mobile app that helps golfers improve swing consist
 ├── constants/              # Type definitions and constants
 ├── types/                  # Global TypeScript types
 ├── hooks/                  # Custom React hooks
-├── assets/audio/           # Audio files
-└── __tests__/              # Test files
+├── assets/audio/           # Audio files (WAV)
+├── __tests__/              # Test files
+└── __mocks__/              # Jest module mocks (expo-av, etc.)
 ```
 
 ## Key Files
@@ -39,6 +40,9 @@ ProTempo is a cross-platform mobile app that helps golfers improve swing consist
 - `plan.md` - Detailed implementation plan with 15 prompts
 - `todo.md` - Implementation progress tracker
 - `docs/PRD.md` - Product requirements document
+- `jest.setup.js` - Global Jest setup with module mocks
+- `lib/audioManager.ts` - Audio playback management (expo-av wrapper)
+- `lib/tempoEngine.ts` - Pure timing calculation functions
 
 ## Development Commands
 
@@ -93,3 +97,23 @@ This project follows a structured 15-prompt implementation plan. When working on
 - Integration tests for screen functionality
 - All tests must pass before committing
 - Target 70% code coverage
+
+## Implementation Notes
+
+### expo-av Mocking
+
+The expo-av module has native dependencies that aren't available in Jest. A global mock is configured in `jest.setup.js`. For tests that need specific mock behavior (like `audioManager.test.ts`), define local mocks before importing the module under test.
+
+### Asset Loading
+
+React Native/Metro bundler requires `require()` for asset imports. This is disabled via eslint-disable comments in `audioManager.ts`. Don't convert these to ES6 imports.
+
+### Audio Files
+
+Placeholder audio files are in `assets/audio/`:
+- `tone-beep.wav` - Single beep for all tones (beep style)
+- `tone-voice-back.wav` - "Back" cue (voice style)
+- `tone-voice-down.wav` - "Down" cue (voice style)
+- `tone-voice-hit.wav` - "Hit" cue (voice style)
+
+These are simple sine wave tones generated with ffmpeg. Replace with professional recordings before release.
