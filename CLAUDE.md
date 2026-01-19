@@ -41,8 +41,9 @@ ProTempo is a cross-platform mobile app that helps golfers improve swing consist
 - `todo.md` - Implementation progress tracker
 - `docs/PRD.md` - Product requirements document
 - `jest.setup.js` - Global Jest setup with module mocks
-- `lib/audioManager.ts` - Audio playback management (expo-av wrapper)
 - `lib/tempoEngine.ts` - Pure timing calculation functions
+- `lib/audioManager.ts` - Audio playback management (expo-av wrapper)
+- `lib/playbackService.ts` - Orchestrates timing and audio for practice sessions
 
 ## Development Commands
 
