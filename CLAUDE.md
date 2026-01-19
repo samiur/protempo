@@ -52,6 +52,7 @@ ProTempo is a cross-platform mobile app that helps golfers improve swing consist
 - `components/RepCounter.tsx` - Large rep count display for practice sessions
 - `components/PlaybackControls.tsx` - Play/pause/stop buttons for tempo playback
 - `components/SessionControls.tsx` - Delay slider and playback mode toggle
+- `app/(tabs)/index.tsx` - Long Game screen with full component integration
 
 ## Development Commands
 
