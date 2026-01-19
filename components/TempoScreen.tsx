@@ -7,6 +7,7 @@ import { StyleSheet, Text, View, ScrollView } from 'react-native'
 import { colors, fontSizes, spacing } from '../constants/theme'
 import { getPresetById } from '../constants/tempos'
 import { useAudioManager } from '../hooks/useAudioManager'
+import { useKeepAwake } from '../hooks/useKeepAwake'
 import { useSettingsStore } from '../stores/settingsStore'
 import { useSessionStore } from '../stores/sessionStore'
 import { createPlaybackService, type PlaybackService } from '../lib/playbackService'
@@ -42,6 +43,7 @@ export default function TempoScreen({
   const previousGameModeRef = useRef<GameMode | null>(null)
 
   // Settings store - persistent preferences
+  const hasHydrated = useSettingsStore((s) => s._hasHydrated)
   const toneStyle = useSettingsStore((s) => s.toneStyle)
   const volume = useSettingsStore((s) => s.volume)
   const delayBetweenReps = useSettingsStore((s) => s.delayBetweenReps)
@@ -67,6 +69,9 @@ export default function TempoScreen({
     volume,
   })
 
+  // Keep screen awake based on user settings
+  useKeepAwake()
+
   // Initialize game mode and default preset on mount
   useEffect(() => {
     const currentStoreGameMode = useSessionStore.getState().gameMode
@@ -81,8 +86,13 @@ export default function TempoScreen({
 
     previousGameModeRef.current = gameMode
     setGameMode(gameMode)
-    setPreset(defaultPresetId)
-  }, [gameMode, setGameMode, setPreset, defaultPresetId, resetRepCount])
+
+    // Only set preset after settings have hydrated from storage
+    // This prevents using hardcoded defaults before user preferences load
+    if (hasHydrated) {
+      setPreset(defaultPresetId)
+    }
+  }, [gameMode, setGameMode, setPreset, defaultPresetId, resetRepCount, hasHydrated])
 
   // Initialize playback service
   useEffect(() => {

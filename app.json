@@ -15,7 +15,10 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.protempo.app"
+      "bundleIdentifier": "com.protempo.app",
+      "infoPlist": {
+        "UIBackgroundModes": ["audio"]
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -23,7 +26,8 @@
         "backgroundColor": "#121212"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.protempo.app"
+      "package": "com.protempo.app",
+      "permissions": ["android.permission.FOREGROUND_SERVICE"]
     },
     "web": {
       "favicon": "./assets/favicon.png",

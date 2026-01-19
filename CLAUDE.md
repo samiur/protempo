@@ -60,6 +60,8 @@ ProTempo is a cross-platform mobile app that helps golfers improve swing consist
 - `app/(tabs)/index.tsx` - Long Game screen (3:1 ratio presets)
 - `app/(tabs)/short-game.tsx` - Short Game screen (2:1 ratio presets)
 - `app/(tabs)/settings.tsx` - Settings screen with audio, defaults, display, and about sections
+- `hooks/useKeepAwake.ts` - Manages screen wake lock based on user settings
+- `hooks/useAppState.ts` - Tracks app lifecycle state changes (active, background, inactive)
 
 ## Development Commands
 
@@ -139,7 +141,7 @@ The `lib/storage.ts` provides standalone utilities for direct AsyncStorage acces
 
 ### Jest Mocking
 
-expo-av, expo-audio, AsyncStorage, and @react-native-community/slider modules have native dependencies that aren't available in Jest. Global mocks are configured in `jest.setup.js`. For tests that need specific mock behavior, define local mocks before importing the module under test.
+expo-av, expo-audio, expo-keep-awake, AsyncStorage, and @react-native-community/slider modules have native dependencies that aren't available in Jest. Global mocks are configured in `jest.setup.js`. For tests that need specific mock behavior, define local mocks before importing the module under test.
 
 ### Asset Loading
 
@@ -154,3 +156,23 @@ Placeholder audio files are in `assets/audio/`:
 - `tone-voice-hit.wav` - "Hit" cue (voice style)
 
 These are simple sine wave tones generated with ffmpeg. Replace with professional recordings before release.
+
+### Background Audio & Screen Wake Lock
+
+The app supports background audio playback and screen wake lock:
+
+**Background Audio:**
+- Configured in `useAudioManager` via `setAudioModeAsync`:
+  - `playsInSilentMode: true` - plays in iOS silent mode
+  - `shouldPlayInBackground: true` - continues when app is backgrounded
+  - `interruptionMode: 'doNotMix'` - handles audio interruptions from calls/other apps
+- `app.json` includes iOS `UIBackgroundModes: ["audio"]` and Android `FOREGROUND_SERVICE` permission
+
+**Screen Wake Lock:**
+- `hooks/useKeepAwake.ts` manages screen dimming prevention
+- Controlled by `keepScreenAwake` setting in `settingsStore`
+- Uses `expo-keep-awake` for cross-platform support
+
+**App Lifecycle:**
+- `hooks/useAppState.ts` provides callbacks for app state changes
+- Available for future enhancements (e.g., analytics, state verification)

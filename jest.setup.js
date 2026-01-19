@@ -48,6 +48,13 @@ jest.mock('@react-native-community/slider', () => {
   }
 })
 
+// Mock expo-keep-awake module globally
+jest.mock('expo-keep-awake', () => ({
+  activateKeepAwakeAsync: jest.fn().mockResolvedValue(undefined),
+  deactivateKeepAwake: jest.fn(),
+  useKeepAwake: jest.fn(),
+}))
+
 // Mock expo-audio module globally
 jest.mock('expo-audio', () => {
   const mockPlayer = {
