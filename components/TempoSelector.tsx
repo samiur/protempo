@@ -9,7 +9,7 @@ import type { TempoPreset } from '../types/tempo'
 
 export interface TempoSelectorProps {
   /** Array of tempo presets to display */
-  presets: TempoPreset[]
+  presets: readonly TempoPreset[]
   /** ID of the currently selected preset */
   selectedPresetId: string
   /** Callback when a preset is selected */

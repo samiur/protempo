@@ -50,37 +50,31 @@ describe('Navigation', () => {
       expect(screen.getByText('Long Game')).toBeTruthy()
     })
 
-    it('displays audio testing controls', () => {
+    it('displays subtitle with tempo ratio', () => {
       render(<LongGameScreen />)
-      expect(screen.getByText('Audio Testing')).toBeTruthy()
-      // Audio now auto-loads, so we show loading state indicator
-      expect(screen.getByText(/Audio Loaded|Loading audio/)).toBeTruthy()
-    })
-
-    it('displays play tone buttons', () => {
-      render(<LongGameScreen />)
-      // Tone buttons are numbered 1, 2, 3 in the Audio Testing section
-      expect(screen.getByText('1')).toBeTruthy()
-      expect(screen.getByText('2')).toBeTruthy()
-      expect(screen.getByText('3')).toBeTruthy()
+      expect(screen.getByText('3:1 Tempo Training')).toBeTruthy()
     })
 
     it('displays playback controls', () => {
       render(<LongGameScreen />)
-      expect(screen.getByText('Playback')).toBeTruthy()
-      expect(screen.getByText(/PLAY/)).toBeTruthy()
+      expect(screen.getByTestId('playback-controls')).toBeTruthy()
     })
 
     it('displays tempo selector', () => {
       render(<LongGameScreen />)
       expect(screen.getByText('Tempo')).toBeTruthy()
-      expect(screen.getByText('24/8')).toBeTruthy()
+      expect(screen.getByTestId('tempo-selector-scroll')).toBeTruthy()
     })
 
     it('displays rep counter', () => {
       render(<LongGameScreen />)
-      expect(screen.getByText('0')).toBeTruthy()
+      expect(screen.getByTestId('rep-counter')).toBeTruthy()
       expect(screen.getByText('REPS')).toBeTruthy()
+    })
+
+    it('displays session controls', () => {
+      render(<LongGameScreen />)
+      expect(screen.getByTestId('session-controls')).toBeTruthy()
     })
   })
 
