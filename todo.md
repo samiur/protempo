@@ -7,8 +7,8 @@
 
 ## Current Status
 
-**Phase:** Phase 5 - Main Screens (In Progress)
-**Current Prompt:** Prompt 11 Complete, Ready for Prompt 12
+**Phase:** Phase 5 - Main Screens (Complete)
+**Current Prompt:** Prompt 12 Complete, Ready for Prompt 13
 **Blocking Issues:** None
 
 ---
@@ -98,11 +98,11 @@
   - [x] Integration tests passing (30 tests)
   - [x] Manual testing on device done
 
-- [ ] **Prompt 12: Short Game Screen**
-  - [ ] `components/TempoScreen.tsx` extracted
-  - [ ] `app/(tabs)/short-game.tsx` complete
-  - [ ] Both screens share code properly
-  - [ ] Tests passing
+- [x] **Prompt 12: Short Game Screen**
+  - [x] `components/TempoScreen.tsx` extracted
+  - [x] `app/(tabs)/short-game.tsx` complete
+  - [x] Both screens share code properly
+  - [x] Tests passing (457 total tests)
 
 ### Phase 6: Settings
 
@@ -185,6 +185,7 @@
 | 2026-01-19 | Prompt 9: Selection & Display Components | Complete | TempoSelector and RepCounter components with accessibility, 26 component tests, 324 total tests |
 | 2026-01-19 | Prompt 10: Control Components | Complete | PlaybackControls and SessionControls with slider and mode toggle, 50 component tests, 374 total tests |
 | 2026-01-19 | Prompt 11: Long Game Screen | Complete | Full component integration, store wiring, playback service connection, 30 integration tests, 404 total tests |
+| 2026-01-19 | Prompt 12: Short Game Screen | Complete | TempoScreen shared component extracted, Short Game screen using 2:1 presets, rep count resets on tab switch, 457 total tests |
 
 ---
 
@@ -205,4 +206,4 @@
 
 ---
 
-*Last updated: January 19, 2026 (Prompt 11 complete)*
+*Last updated: January 19, 2026 (Prompt 12 complete)*

@@ -84,9 +84,31 @@ describe('Navigation', () => {
       expect(screen.getByText('Short Game')).toBeTruthy()
     })
 
-    it('displays placeholder text', () => {
+    it('displays subtitle with tempo ratio', () => {
       render(<ShortGameScreen />)
-      expect(screen.getByText('Coming soon')).toBeTruthy()
+      expect(screen.getByText('2:1 Tempo Training')).toBeTruthy()
+    })
+
+    it('displays playback controls', () => {
+      render(<ShortGameScreen />)
+      expect(screen.getByTestId('playback-controls')).toBeTruthy()
+    })
+
+    it('displays tempo selector', () => {
+      render(<ShortGameScreen />)
+      expect(screen.getByText('Tempo')).toBeTruthy()
+      expect(screen.getByTestId('tempo-selector-scroll')).toBeTruthy()
+    })
+
+    it('displays rep counter', () => {
+      render(<ShortGameScreen />)
+      expect(screen.getByTestId('rep-counter')).toBeTruthy()
+      expect(screen.getByText('REPS')).toBeTruthy()
+    })
+
+    it('displays session controls', () => {
+      render(<ShortGameScreen />)
+      expect(screen.getByTestId('session-controls')).toBeTruthy()
     })
   })
 
