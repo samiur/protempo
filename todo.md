@@ -7,8 +7,8 @@
 
 ## Current Status
 
-**Phase:** Phase 1 - Foundation
-**Current Prompt:** Prompt 1 Complete, Ready for Prompt 2
+**Phase:** Phase 2 - Core Engine
+**Current Prompt:** Prompt 2 Complete, Ready for Prompt 3
 **Blocking Issues:** None
 
 ---
@@ -24,11 +24,11 @@
   - [x] Folder structure created
   - [x] All scripts working (lint, test, start)
 
-- [ ] **Prompt 2: Constants & Types**
-  - [ ] `constants/tempos.ts` with all presets
-  - [ ] `types/tempo.ts` with interfaces
-  - [ ] `constants/defaults.ts`
-  - [ ] Unit tests passing
+- [x] **Prompt 2: Constants & Types**
+  - [x] `constants/tempos.ts` with all presets
+  - [x] `types/tempo.ts` with interfaces
+  - [x] `constants/defaults.ts`
+  - [x] Unit tests passing
 
 ### Phase 2: Core Engine
 
@@ -175,6 +175,7 @@
 | Date | Prompt | Status | Notes |
 |------|--------|--------|-------|
 | 2025-01-19 | Prompt 1: Project Setup | Complete | Expo SDK 54, TypeScript strict mode, ESLint + Prettier, Jest configured |
+| 2026-01-19 | Prompt 2: Constants & Types | Complete | All tempo presets, TypeScript types, defaults, 68 tests passing |
 
 ---
 
@@ -195,4 +196,4 @@
 
 ---
 
-*Last updated: January 19, 2026*
+*Last updated: January 19, 2026 (Prompt 2 complete)*
