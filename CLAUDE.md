@@ -50,6 +50,8 @@ ProTempo is a cross-platform mobile app that helps golfers improve swing consist
 - `lib/audioManager.ts` - Legacy audio manager (expo-av, kept for backward compatibility)
 - `components/TempoSelector.tsx` - Horizontal scrollable tempo preset selector
 - `components/RepCounter.tsx` - Large rep count display for practice sessions
+- `components/PlaybackControls.tsx` - Play/pause/stop buttons for tempo playback
+- `components/SessionControls.tsx` - Delay slider and playback mode toggle
 
 ## Development Commands
 
@@ -129,7 +131,7 @@ The `lib/storage.ts` provides standalone utilities for direct AsyncStorage acces
 
 ### Jest Mocking
 
-Both expo-av, expo-audio, and AsyncStorage modules have native dependencies that aren't available in Jest. Global mocks are configured in `jest.setup.js`. For tests that need specific mock behavior, define local mocks before importing the module under test.
+expo-av, expo-audio, AsyncStorage, and @react-native-community/slider modules have native dependencies that aren't available in Jest. Global mocks are configured in `jest.setup.js`. For tests that need specific mock behavior, define local mocks before importing the module under test.
 
 ### Asset Loading
 
