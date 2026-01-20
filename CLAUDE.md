@@ -15,6 +15,7 @@ ProTempo is a cross-platform mobile app that helps golfers improve swing consist
 | Navigation | Expo Router |
 | State | Zustand |
 | Audio | expo-audio |
+| Video | react-native-vision-camera (planned), expo-video |
 | Storage | AsyncStorage + expo-file-system |
 | Unit Testing | Jest + React Native Testing Library |
 | E2E Testing | Detox |
@@ -72,8 +73,8 @@ ProTempo is a cross-platform mobile app that helps golfers improve swing consist
 - `lib/videoStorage.ts` - AsyncStorage CRUD operations for video metadata with index management
 - `lib/videoFileManager.ts` - File operations for video storage and thumbnail generation (expo-file-system SDK 54)
 - `constants/videoSettings.ts` - Video recording limits, FPS targets, and storage paths
-- `hooks/useVideoCapture.ts` - React hook for camera permissions, recording lifecycle, and duration tracking
-- `lib/cameraUtils.ts` - Camera utility functions for video quality selection and time formatting
+- `hooks/useVideoCapture.ts` - React hook for camera permissions, recording lifecycle, and duration tracking (expo-camera, migrating to VisionCamera)
+- `lib/cameraUtils.ts` - Camera utility functions including `formatRecordingTime` and `CameraCapabilities` interface
 
 ## Development Commands
 
@@ -335,8 +336,10 @@ The `jest.setup.js` includes mocks for expo-file-system's SDK 54 API:
 
 The `useVideoCapture` hook provides camera recording functionality for capturing golf swing videos.
 
+**Current State:** Using expo-camera, but migrating to react-native-vision-camera (Prompt 25A) for high-FPS support (120-240fps) needed for accurate golf swing analysis.
+
 **Hook Interface (`hooks/useVideoCapture.ts`):**
-- `cameraRef` - Ref to attach to expo-camera's CameraView component
+- `cameraRef` - Ref to attach to the Camera component
 - `isRecording` - Whether the camera is currently recording
 - `recordingDuration` - Current recording duration in milliseconds
 - `actualFps` - FPS being used for recording
@@ -347,7 +350,6 @@ The `useVideoCapture` hook provides camera recording functionality for capturing
 - `getCameraCapabilities()` - Get the camera's capabilities
 
 **Features:**
-- Uses expo-camera's `useCameraPermissions` and `useMicrophonePermissions` hooks
 - Tracks recording duration with an interval timer
 - Auto-stops recording at `MAX_VIDEO_DURATION` (10 seconds)
 - Returns recording result with URI and duration
@@ -355,6 +357,12 @@ The `useVideoCapture` hook provides camera recording functionality for capturing
 **Camera Utils (`lib/cameraUtils.ts`):**
 - `formatRecordingTime(ms)` - Format duration as "M:SS"
 - `CameraCapabilities` interface - Describes device camera capabilities (maxFps, supportsSlowMotion, supportedRatios)
+
+**Why VisionCamera (planned migration):**
+- expo-camera: Limited to ~30-60fps, no explicit FPS control
+- VisionCamera: Up to 240fps, explicit format selection via `useCameraFormat(device, [{ fps: 240 }])`
+- High FPS is essential for smooth frame-by-frame scrubbing in swing analysis
+- Higher FPS modes use lower resolutions (e.g., 240fps @ 720p) - this is expected behavior
 
 **Permissions (app.json):**
 - iOS: `NSCameraUsageDescription` and `NSMicrophoneUsageDescription`

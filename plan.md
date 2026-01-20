@@ -35,7 +35,7 @@ Storage: AsyncStorage (settings, sessions) + FileSystem (videos)
 | Navigation | Expo Router |
 | State | Zustand |
 | Audio | expo-av / expo-audio |
-| Video | expo-camera, expo-video |
+| Video | react-native-vision-camera, expo-video |
 | Haptics | expo-haptics |
 | ML | TensorFlow Lite / Core ML |
 | Storage | AsyncStorage + expo-file-system |
@@ -618,8 +618,8 @@ Create a React hook for capturing high-speed video using the device camera.
    - Auto-stop when limit reached
 
 4. Create `lib/cameraUtils.ts`:
-   - `getBestVideoQuality(capabilities: CameraCapabilities): VideoQuality`
    - `formatRecordingTime(ms: number): string` // "0:05"
+   - `CameraCapabilities` interface for describing device capabilities
 
 5. Update `app.json`:
    - Add camera usage description for iOS
@@ -641,6 +641,150 @@ Create a React hook for capturing high-speed video using the device camera.
 - Duration tracked accurately
 - Auto-stops at max duration
 - All tests pass
+```
+
+### Prompt 25A: Migrate to VisionCamera for High-FPS Recording
+
+```text
+Migrate from expo-camera to react-native-vision-camera to enable high-speed video capture (120-240fps) for accurate golf swing analysis. VisionCamera provides explicit FPS control and format selection that expo-camera lacks.
+
+**Background:**
+- expo-camera has limited high-FPS support (~30-60fps max)
+- Golf swing analysis requires 120-240fps for smooth frame-by-frame scrubbing
+- VisionCamera offers full FPS control via format selection and explicit fps prop
+- Higher FPS modes typically require lower resolutions (e.g., 240fps @ 720p vs 30fps @ 4K)
+
+**Requirements:**
+
+1. Uninstall expo-camera and install VisionCamera:
+   ```bash
+   npm uninstall expo-camera
+   npx expo install react-native-vision-camera
+   ```
+
+2. Update `app.json` with VisionCamera plugin:
+   ```json
+   {
+     "plugins": [
+       [
+         "react-native-vision-camera",
+         {
+           "cameraPermissionText": "ProTempo needs camera access to record swing videos for tempo analysis.",
+           "enableMicrophonePermission": true,
+           "microphonePermissionText": "ProTempo needs microphone access for video recording."
+         }
+       ]
+     ]
+   }
+   ```
+   - Remove old expo-camera permission entries
+
+3. Update `hooks/useVideoCapture.ts`:
+   - Replace expo-camera imports with VisionCamera:
+     ```typescript
+     import {
+       Camera,
+       useCameraDevice,
+       useCameraFormat,
+       useCameraPermission,
+       useMicrophonePermission,
+       VideoFile
+     } from 'react-native-vision-camera'
+     ```
+   - Update permission handling:
+     - `useCameraPermission()` returns `{ hasPermission, requestPermission }`
+     - `useMicrophonePermission()` returns same structure
+   - Add device and format selection:
+     ```typescript
+     const device = useCameraDevice('back')
+     const format = useCameraFormat(device, [
+       { fps: 240 },        // Priority 1: highest FPS
+       { videoAspectRatio: 16/9 }  // Priority 2: widescreen
+     ])
+     const actualFps = format?.maxFps ?? MIN_FPS
+     ```
+   - Update recording API (callback-based instead of promise):
+     ```typescript
+     const startRecording = useCallback(async () => {
+       cameraRef.current?.startRecording({
+         onRecordingFinished: (video: VideoFile) => {
+           recordingResolveRef.current?.({ uri: video.path, duration })
+         },
+         onRecordingError: (error) => {
+           recordingRejectRef.current?.(error)
+         }
+       })
+     }, [])
+     ```
+   - Update stopRecording to work with callback pattern
+   - Export actualFps so UI can display real FPS being used
+
+4. Update `lib/cameraUtils.ts`:
+   - Update `CameraCapabilities` interface if needed
+   - VisionCamera provides device capabilities directly
+
+5. Update `jest.setup.js`:
+   - Remove expo-camera mock
+   - Add react-native-vision-camera mock:
+     ```javascript
+     jest.mock('react-native-vision-camera', () => ({
+       Camera: 'Camera',
+       useCameraDevice: jest.fn(() => ({ id: 'back' })),
+       useCameraFormat: jest.fn(() => ({
+         maxFps: 240,
+         videoWidth: 1920,
+         videoHeight: 1080
+       })),
+       useCameraPermission: jest.fn(() => ({
+         hasPermission: true,
+         requestPermission: jest.fn().mockResolvedValue(true)
+       })),
+       useMicrophonePermission: jest.fn(() => ({
+         hasPermission: true,
+         requestPermission: jest.fn().mockResolvedValue(true)
+       })),
+     }))
+     ```
+
+6. Update `__tests__/hooks/useVideoCapture.test.ts`:
+   - Update mocks for VisionCamera API
+   - Test format selection returns high FPS
+   - Test recording callbacks work correctly
+   - Test actualFps reflects selected format
+
+7. Update CLAUDE.md:
+   - Change "expo-camera" references to "react-native-vision-camera"
+   - Document VisionCamera-specific patterns
+
+8. Run prebuild to regenerate native projects:
+   ```bash
+   npx expo prebuild --clean
+   ```
+
+**API Differences Summary:**
+
+| Feature | expo-camera | VisionCamera |
+|---------|-------------|--------------|
+| Permission hook | `useCameraPermissions()` | `useCameraPermission()` |
+| Permission result | `[status, request]` tuple | `{ hasPermission, requestPermission }` |
+| Camera component | `CameraView` | `Camera` |
+| Start recording | `recordAsync()` → Promise | `startRecording({callbacks})` |
+| Stop recording | `stopRecording()` | `stopRecording()` |
+| FPS control | Automatic | `useCameraFormat` + `fps` prop |
+| Format selection | None | `useCameraFormat(device, filters)` |
+
+**Testing Notes:**
+- VisionCamera requires native builds (EAS), won't work in Expo Go
+- Existing E2E test setup with `npx expo prebuild` is compatible
+- Mock the module for unit tests
+
+**Acceptance Criteria:**
+- VisionCamera installed and configured
+- Hook uses high-FPS format selection (targets 240fps, falls back gracefully)
+- Recording works with callback-based API
+- actualFps reflects the real FPS being used
+- All unit tests pass with updated mocks
+- App builds successfully with `npx expo prebuild`
 ```
 
 ### Prompt 26: Video Recording Screen
