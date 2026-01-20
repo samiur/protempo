@@ -15,12 +15,14 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
     "typecheck": "tsc --noEmit",
-    "e2e:build:ios": "detox build --configuration ios.sim.debug",
-    "e2e:build:android": "detox build --configuration android.emu.debug",
-    "e2e:test:ios": "detox test --configuration ios.sim.debug",
-    "e2e:test:android": "detox test --configuration android.emu.debug",
+    "e2e:build:ios": "detox build --configuration ios.sim.release",
+    "e2e:build:android": "detox build --configuration android.emu.release",
+    "e2e:test:ios": "detox test --configuration ios.sim.release",
+    "e2e:test:android": "detox test --configuration android.emu.release",
     "e2e:ios": "npm run e2e:build:ios && npm run e2e:test:ios",
-    "e2e:android": "npm run e2e:build:android && npm run e2e:test:android"
+    "e2e:android": "npm run e2e:build:android && npm run e2e:test:android",
+    "e2e:build:ios:debug": "detox build --configuration ios.sim.debug",
+    "e2e:test:ios:debug": "detox test --configuration ios.sim.debug"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
