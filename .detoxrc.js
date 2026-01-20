@@ -6,6 +6,14 @@ module.exports = {
   logger: {
     level: process.env.CI ? 'debug' : 'info',
   },
+  artifacts: {
+    rootDir: 'artifacts',
+    plugins: {
+      screenshot: process.env.CI ? 'failing' : 'none',
+      video: process.env.CI ? 'failing' : 'none',
+      log: process.env.CI ? 'failing' : 'none',
+    },
+  },
   testRunner: {
     args: {
       $0: 'jest',

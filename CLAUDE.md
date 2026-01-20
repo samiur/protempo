@@ -245,3 +245,47 @@ npm run e2e:test:ios      # Run tests only (if already built)
 - `playback-controls`, `playback-play-button`, `playback-pause-button`, `playback-stop-button` - Playback
 - `session-controls` - Session controls
 - `segment-beep`, `segment-voice` - Settings tone style
+
+### CI/CD with GitHub Actions
+
+The project uses GitHub Actions for continuous integration and testing.
+
+**Workflows:**
+
+1. **CI Workflow** (`.github/workflows/ci.yml`)
+   - Triggers: Every push and PR to `main`
+   - Runs on: Ubuntu (fast, cost-effective)
+   - Steps: ESLint, Prettier check, TypeScript check, Jest unit tests
+   - Coverage uploaded to Codecov
+
+2. **E2E Workflow** (`.github/workflows/e2e.yml`)
+   - Triggers: PRs to `main` (excluding docs-only changes), manual dispatch
+   - Runs on: macOS 14 (Apple Silicon, required for iOS simulator)
+   - Steps: Build native iOS app, boot simulator, run Detox tests
+   - Artifacts: Screenshots and videos uploaded on test failure
+
+**Checking CI Status:**
+- View workflow runs at: https://github.com/samiur/protempo/actions
+- Status badges in README.md show current build status
+- PR checks must pass before merging
+
+**Manually Triggering E2E:**
+1. Go to Actions tab on GitHub
+2. Select "E2E Tests" workflow
+3. Click "Run workflow" dropdown
+4. Select branch and click "Run workflow"
+
+**Debugging CI Failures:**
+- Click on the failed workflow run to see logs
+- Each step's output is expandable
+- For E2E failures, download the `detox-artifacts` artifact for screenshots/videos
+- The `.detoxrc.js` enables debug logging and captures artifacts only in CI
+
+**Expected CI Times:**
+- CI workflow (lint, typecheck, tests): ~2 minutes
+- E2E workflow (iOS build + tests): ~15-20 minutes (with caching)
+
+**Caching:**
+- npm dependencies cached via `actions/setup-node`
+- CocoaPods cached for iOS builds
+- Detox build artifacts cached to speed up subsequent runs

@@ -1,5 +1,8 @@
 # ProTempo - Tempo Trainer
 
+[![CI](https://github.com/samiur/protempo/actions/workflows/ci.yml/badge.svg)](https://github.com/samiur/protempo/actions/workflows/ci.yml)
+[![E2E Tests](https://github.com/samiur/protempo/actions/workflows/e2e.yml/badge.svg)](https://github.com/samiur/protempo/actions/workflows/e2e.yml)
+
 A cross-platform mobile app that helps golfers improve swing consistency through audio-based tempo training.
 
 ## Overview
