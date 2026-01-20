@@ -18,15 +18,15 @@ module.exports = {
   apps: {
     'ios.debug': {
       type: 'ios.app',
-      binaryPath: 'ios/build/Build/Products/Debug-iphonesimulator/protempo.app',
+      binaryPath: 'ios/build/Build/Products/Debug-iphonesimulator/ProTempo.app',
       build:
-        'xcodebuild -workspace ios/protempo.xcworkspace -scheme protempo -configuration Debug -sdk iphonesimulator -derivedDataPath ios/build',
+        'xcodebuild -workspace ios/protempo.xcworkspace -scheme ProTempo -configuration Debug -sdk iphonesimulator -derivedDataPath ios/build',
     },
     'ios.release': {
       type: 'ios.app',
-      binaryPath: 'ios/build/Build/Products/Release-iphonesimulator/protempo.app',
+      binaryPath: 'ios/build/Build/Products/Release-iphonesimulator/ProTempo.app',
       build:
-        'xcodebuild -workspace ios/protempo.xcworkspace -scheme protempo -configuration Release -sdk iphonesimulator -derivedDataPath ios/build',
+        'xcodebuild -workspace ios/protempo.xcworkspace -scheme ProTempo -configuration Release -sdk iphonesimulator -derivedDataPath ios/build',
     },
     'android.debug': {
       type: 'android.apk',
