@@ -1,7 +1,7 @@
 # ProTempo - Implementation Progress
 
 **Status:** V1 Complete ✅ | V2 In Progress
-**V1 Tests:** 633 unit tests + 30 E2E tests passing
+**V2 Tests:** 664 unit tests + 30 E2E tests passing
 **CI/CD:** GitHub Actions configured and running
 
 ---
@@ -47,7 +47,8 @@ All 16 prompts completed:
 | Prompt | Description | Status |
 |--------|-------------|--------|
 | 24 | Video Data Model & File Storage | ✅ |
-| 25 | Camera Capture Hook & Permissions | ⬜ |
+| 25 | Camera Capture Hook & Permissions | ✅ |
+| 25A | Migrate to VisionCamera for High-FPS | ✅ |
 | 26 | Video Recording Screen | ⬜ |
 | 27 | Video Player Component & Frame Scrubbing | ⬜ |
 | 28 | Swing Detector Interface & Mock Implementation | ⬜ |
@@ -73,7 +74,7 @@ All 16 prompts completed:
 |---------|---------|------------------|--------------|
 | Haptic Mode | 17-18 | Small | None |
 | Session History | 19-23 | Medium | None |
-| Video Analysis | 24-32 | Large | expo-camera, ML model |
+| Video Analysis | 24-32 | Large | react-native-vision-camera, ML model |
 | Tempo Tracks | 33-36 | Medium | Audio assets |
 
 **Current Priority:** Video Analysis (Phase 11)
@@ -91,14 +92,15 @@ Record 10 swings to establish baseline tempo:
 ## Next Steps
 
 1. ~~**Prompt 24**: Video Data Model & File Storage~~ ✅
-2. **Prompt 25**: Camera Capture Hook & Permissions
-3. **Prompt 26**: Video Recording Screen
-4. **Prompt 27**: Video Player Component & Frame Scrubbing
-5. **Prompt 28**: Swing Detector Interface & Mock
-6. **Prompt 29**: ML Model Implementation
-7. **Prompt 30**: Analysis Results Screen
-8. **Prompt 31**: Tempo Calibration Flow (10-swing baseline)
-9. **Prompt 32**: Video Library & E2E Tests
+2. ~~**Prompt 25**: Camera Capture Hook & Permissions~~ ✅
+3. ~~**Prompt 25A**: Migrate to VisionCamera for High-FPS Recording~~ ✅
+4. **Prompt 26**: Video Recording Screen
+5. **Prompt 27**: Video Player Component & Frame Scrubbing
+6. **Prompt 28**: Swing Detector Interface & Mock
+7. **Prompt 29**: ML Model Implementation
+8. **Prompt 30**: Analysis Results Screen
+9. **Prompt 31**: Tempo Calibration Flow (10-swing baseline)
+10. **Prompt 32**: Video Library & E2E Tests
 
 Reference `plan.md` for detailed prompt instructions. Follow TDD.
 
@@ -112,6 +114,8 @@ Reference `plan.md` for detailed prompt instructions. Follow TDD.
 | 2026-01-19 | V1 MVP completed (16 prompts) |
 | 2026-01-19 | V2 planning complete (19 new prompts) |
 | 2026-01-19 | Prompt 24 complete: Video Data Model & File Storage |
+| 2026-01-20 | Prompt 25 complete: Camera Capture Hook & Permissions |
+| 2026-01-20 | Prompt 25A complete: Migrate to VisionCamera for High-FPS |
 
 ---
 

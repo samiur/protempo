@@ -15,6 +15,7 @@ ProTempo is a cross-platform mobile app that helps golfers improve swing consist
 | Navigation | Expo Router |
 | State | Zustand |
 | Audio | expo-audio |
+| Video | react-native-vision-camera, expo-video |
 | Storage | AsyncStorage + expo-file-system |
 | Unit Testing | Jest + React Native Testing Library |
 | E2E Testing | Detox |
@@ -72,6 +73,8 @@ ProTempo is a cross-platform mobile app that helps golfers improve swing consist
 - `lib/videoStorage.ts` - AsyncStorage CRUD operations for video metadata with index management
 - `lib/videoFileManager.ts` - File operations for video storage and thumbnail generation (expo-file-system SDK 54)
 - `constants/videoSettings.ts` - Video recording limits, FPS targets, and storage paths
+- `hooks/useVideoCapture.ts` - React hook for camera permissions, recording lifecycle, and duration tracking (react-native-vision-camera)
+- `lib/cameraUtils.ts` - Camera utility functions including `formatRecordingTime` and `CameraCapabilities` interface
 
 ## Development Commands
 
@@ -156,7 +159,7 @@ The `lib/storage.ts` provides standalone utilities for direct AsyncStorage acces
 
 ### Jest Mocking
 
-expo-av, expo-audio, expo-keep-awake, AsyncStorage, and @react-native-community/slider modules have native dependencies that aren't available in Jest. Global mocks are configured in `jest.setup.js`. For tests that need specific mock behavior, define local mocks before importing the module under test.
+expo-av, expo-audio, expo-keep-awake, react-native-vision-camera, AsyncStorage, and @react-native-community/slider modules have native dependencies that aren't available in Jest. Global mocks are configured in `jest.setup.js`. For tests that need specific mock behavior, define local mocks before importing the module under test.
 
 ### Asset Loading
 
@@ -328,3 +331,44 @@ The `jest.setup.js` includes mocks for expo-file-system's SDK 54 API:
 **Storage Keys:**
 - `protempo:video:index` - Array of video IDs
 - `protempo:video:{id}` - Individual video metadata
+
+### Video Capture (V2 Feature - In Progress)
+
+The `useVideoCapture` hook provides camera recording functionality for capturing golf swing videos using react-native-vision-camera for high-FPS support (120-240fps).
+
+**Hook Interface (`hooks/useVideoCapture.ts`):**
+- `cameraRef` - Ref to attach to the VisionCamera Camera component
+- `device` - Selected camera device (back camera)
+- `format` - Selected camera format optimized for high-FPS recording
+- `isRecording` - Whether the camera is currently recording
+- `recordingDuration` - Current recording duration in milliseconds
+- `actualFps` - FPS being used for recording (from selected format, targets 240fps)
+- `hasPermission` - Permission state (true, false, or null if not yet determined)
+- `requestPermission()` - Request camera and microphone permissions
+- `startRecording()` - Start recording video (callback-based)
+- `stopRecording()` - Stop recording and return the video result
+- `getCameraCapabilities()` - Get the camera's capabilities
+
+**Features:**
+- Uses `useCameraFormat(device, [{ fps: TARGET_FPS }, { videoAspectRatio: 16/9 }])` for high-FPS format selection
+- Targets 240fps for smooth frame-by-frame swing analysis
+- Tracks recording duration with an interval timer
+- Auto-stops recording at `MAX_VIDEO_DURATION` (10 seconds)
+- Returns recording result with URI and duration
+- Falls back to `MIN_FPS` (60fps) when high-FPS format unavailable
+
+**VisionCamera vs expo-camera:**
+- VisionCamera provides explicit FPS control via format selection
+- Supports up to 240fps (device-dependent)
+- Uses callback-based recording (`onRecordingFinished`, `onRecordingError`)
+- Higher FPS modes use lower resolutions (e.g., 240fps @ 720p) - expected behavior
+
+**Camera Utils (`lib/cameraUtils.ts`):**
+- `formatRecordingTime(ms)` - Format duration as "M:SS"
+- `CameraCapabilities` interface - Describes device camera capabilities (maxFps, supportsSlowMotion, supportedRatios)
+
+**Permissions (app.json via VisionCamera plugin):**
+- iOS: Camera and microphone usage descriptions configured via plugin
+- Android: Camera and microphone permissions granted via plugin
+
+**Note:** VisionCamera requires native builds (won't work in Expo Go). Use `npx expo prebuild` to generate native projects.

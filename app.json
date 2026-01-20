@@ -17,7 +17,9 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.protempo.app",
       "infoPlist": {
-        "UIBackgroundModes": ["audio"]
+        "UIBackgroundModes": ["audio"],
+        "NSCameraUsageDescription": "ProTempo needs camera access to record your golf swing for tempo analysis.",
+        "NSMicrophoneUsageDescription": "ProTempo needs microphone access to record audio with your swing videos."
       }
     },
     "android": {
@@ -27,12 +29,16 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.protempo.app",
-      "permissions": ["android.permission.FOREGROUND_SERVICE"]
+      "permissions": [
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png",
       "bundler": "metro"
     },
-    "plugins": ["expo-router"]
+    "plugins": ["expo-router", "react-native-vision-camera"]
   }
 }
