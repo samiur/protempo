@@ -53,16 +53,17 @@ All 16 prompts completed:
 | 28 | Swing Detector Interface & Mock Implementation | ⬜ |
 | 29 | ML Model Implementation | ⬜ |
 | 30 | Analysis Results Screen & Manual Adjustment | ⬜ |
-| 31 | Video Library Screen & E2E Tests | ⬜ |
+| 31 | **Tempo Calibration Flow (10-swing baseline)** | ⬜ |
+| 32 | Video Library Screen & E2E Tests | ⬜ |
 
 ### Phase 12: Tempo Tracks (Background Music)
 
 | Prompt | Description | Status |
 |--------|-------------|--------|
-| 32 | Track Data Model & Constants | ⬜ |
-| 33 | Music Player Engine | ⬜ |
-| 34 | Track Picker UI & Preview | ⬜ |
-| 35 | Music Integration & Settings | ⬜ |
+| 33 | Track Data Model & Constants | ⬜ |
+| 34 | Music Player Engine | ⬜ |
+| 35 | Track Picker UI & Preview | ⬜ |
+| 36 | Music Integration & Settings | ⬜ |
 
 ---
 
@@ -72,10 +73,18 @@ All 16 prompts completed:
 |---------|---------|------------------|--------------|
 | Haptic Mode | 17-18 | Small | None |
 | Session History | 19-23 | Medium | None |
-| Video Analysis | 24-31 | Large | expo-camera, ML model |
-| Tempo Tracks | 32-35 | Medium | Audio assets |
+| Video Analysis | 24-32 | Large | expo-camera, ML model |
+| Tempo Tracks | 33-36 | Medium | Audio assets |
 
 **Current Priority:** Video Analysis (Phase 11)
+
+### Calibration Feature (Prompt 31)
+Record 10 swings to establish baseline tempo:
+- Guided recording flow with progress indicator
+- Auto-analyze each swing
+- Calculate averages, consistency score
+- Compare to tour average (3:1 long, 2:1 short)
+- Recommend closest preset
 
 ---
 
@@ -88,7 +97,8 @@ All 16 prompts completed:
 5. **Prompt 28**: Swing Detector Interface & Mock
 6. **Prompt 29**: ML Model Implementation
 7. **Prompt 30**: Analysis Results Screen
-8. **Prompt 31**: Video Library & E2E Tests
+8. **Prompt 31**: Tempo Calibration Flow (10-swing baseline)
+9. **Prompt 32**: Video Library & E2E Tests
 
 Reference `plan.md` for detailed prompt instructions. Follow TDD.
 
