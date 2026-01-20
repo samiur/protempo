@@ -11,7 +11,7 @@ import { useSettingsStore } from '../../stores/settingsStore'
 const mockReplace = jest.fn()
 jest.mock('expo-router', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { View, Text } = require('react-native')
+  const { View } = require('react-native')
   const MockScreen = () => null
   const MockStack = ({ children }: { children: React.ReactNode }) => <View>{children}</View>
   MockStack.Screen = MockScreen
@@ -21,7 +21,8 @@ jest.mock('expo-router', () => {
     router: {
       replace: (route: string) => mockReplace(route),
     },
-    Redirect: ({ href }: { href: string }) => <Text testID="redirect">Redirecting to {href}</Text>,
+    useSegments: () => ['(tabs)'],
+    useRootNavigationState: () => ({ key: 'root-nav-key' }),
   }
 })
 
@@ -69,8 +70,7 @@ describe('RootLayout', () => {
       })
       render(<RootLayout />)
 
-      expect(screen.getByTestId('redirect')).toBeTruthy()
-      expect(screen.getByText('Redirecting to /onboarding')).toBeTruthy()
+      expect(mockReplace).toHaveBeenCalledWith('/onboarding')
     })
   })
 
@@ -82,7 +82,7 @@ describe('RootLayout', () => {
       })
       render(<RootLayout />)
 
-      expect(screen.queryByTestId('redirect')).toBeNull()
+      expect(mockReplace).not.toHaveBeenCalled()
     })
 
     it('renders stack navigator when onboarding completed', () => {

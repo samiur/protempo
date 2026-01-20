@@ -1,7 +1,7 @@
 // ABOUTME: Root layout for ProTempo app navigation.
 // ABOUTME: Configures dark mode theme, handles onboarding redirect, and sets up the navigation stack.
 
-import { Redirect, Stack } from 'expo-router'
+import { router, Stack, useSegments, useRootNavigationState } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import * as SystemUI from 'expo-system-ui'
 import { useEffect } from 'react'
@@ -13,10 +13,25 @@ import { useSettingsStore } from '../stores/settingsStore'
 export default function RootLayout() {
   const hasHydrated = useSettingsStore((s) => s._hasHydrated)
   const hasCompletedOnboarding = useSettingsStore((s) => s.hasCompletedOnboarding)
+  const segments = useSegments()
+  const navigationState = useRootNavigationState()
 
   useEffect(() => {
     SystemUI.setBackgroundColorAsync(colors.background)
   }, [])
+
+  useEffect(() => {
+    if (!navigationState?.key) return
+    if (!hasHydrated) return
+
+    const inOnboarding = segments[0] === 'onboarding'
+
+    if (!hasCompletedOnboarding && !inOnboarding) {
+      router.replace('/onboarding')
+    } else if (hasCompletedOnboarding && inOnboarding) {
+      router.replace('/(tabs)')
+    }
+  }, [hasHydrated, hasCompletedOnboarding, segments, navigationState?.key])
 
   if (!hasHydrated) {
     return (
@@ -25,10 +40,6 @@ export default function RootLayout() {
         <Text style={styles.loadingText}>Loading...</Text>
       </View>
     )
-  }
-
-  if (!hasCompletedOnboarding) {
-    return <Redirect href="/onboarding" />
   }
 
   return (
