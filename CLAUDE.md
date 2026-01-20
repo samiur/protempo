@@ -16,7 +16,8 @@ ProTempo is a cross-platform mobile app that helps golfers improve swing consist
 | State | Zustand |
 | Audio | expo-audio |
 | Storage | AsyncStorage |
-| Testing | Jest + React Native Testing Library |
+| Unit Testing | Jest + React Native Testing Library |
+| E2E Testing | Detox |
 | Linting | ESLint + Prettier |
 
 ## Project Structure
@@ -31,8 +32,11 @@ ProTempo is a cross-platform mobile app that helps golfers improve swing consist
 ├── types/                  # Global TypeScript types
 ├── hooks/                  # Custom React hooks
 ├── assets/audio/           # Audio files (WAV)
-├── __tests__/              # Test files
-└── __mocks__/              # Jest module mocks (expo-audio, expo-av)
+├── __tests__/              # Jest unit/integration tests
+├── __mocks__/              # Jest module mocks (expo-audio, expo-av)
+├── e2e/                    # Detox E2E tests
+├── ios/                    # Native iOS project (after prebuild)
+└── android/                # Native Android project (after prebuild)
 ```
 
 ## Key Files
@@ -77,6 +81,11 @@ npm run typecheck   # Run TypeScript type checking
 npm test            # Run Jest tests
 npm run test:watch  # Run tests in watch mode
 npm run test:coverage # Run tests with coverage
+
+# E2E Testing (requires native build)
+npx expo prebuild   # Generate native iOS/Android projects
+npm run e2e:ios     # Build and run E2E tests on iOS simulator
+npm run e2e:android # Build and run E2E tests on Android emulator
 ```
 
 ## Code Style
@@ -192,7 +201,26 @@ First-launch users see a 3-page swipeable tutorial before accessing the main app
 **Implementation:**
 - `app/_layout.tsx` checks `hasCompletedOnboarding` from settings store
 - Shows loading screen while AsyncStorage hydrates (`_hasHydrated` flag)
-- Uses `<Redirect href="/onboarding" />` for first-launch redirect
+- Uses `router.replace('/onboarding')` in a deferred useEffect (setTimeout) to redirect after Stack mounts
 - `app/onboarding.tsx` uses horizontal FlatList with paging
 - Skip button and Get Started both call `completeOnboarding()` and redirect to `/(tabs)`
 - State is persisted, so subsequent launches skip onboarding
+
+### E2E Testing with Detox
+
+End-to-end tests verify the app works correctly on real devices/simulators:
+
+**Setup:**
+1. `npx expo prebuild` - Generates native iOS/Android projects
+2. `npm run e2e:build:ios` - Builds the iOS app for testing
+3. `npm run e2e:test:ios` - Runs E2E tests on iOS simulator
+
+**Test Files:**
+- `e2e/onboarding.test.ts` - First-launch flow, navigation, skip/complete
+- `e2e/mainApp.test.ts` - Tab navigation, playback, settings
+
+**Key Patterns:**
+- Use `element(by.id('...'))` for testID-based selectors
+- Use `element(by.text('...'))` for text-based selectors
+- Clear keychain in `beforeEach` to simulate first launch
+- E2E tests catch issues that unit tests miss (navigation context, timing, etc.)
