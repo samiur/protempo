@@ -62,6 +62,8 @@ ProTempo is a cross-platform mobile app that helps golfers improve swing consist
 - `app/(tabs)/settings.tsx` - Settings screen with audio, defaults, display, and about sections
 - `hooks/useKeepAwake.ts` - Manages screen wake lock based on user settings
 - `hooks/useAppState.ts` - Tracks app lifecycle state changes (active, background, inactive)
+- `app/onboarding.tsx` - 3-page swipeable tutorial for first-launch users
+- `app/_layout.tsx` - Root layout with hydration loading and onboarding redirect
 
 ## Development Commands
 
@@ -177,3 +179,20 @@ The app supports background audio playback and screen wake lock:
 **App Lifecycle:**
 - `hooks/useAppState.ts` provides callbacks for app state changes
 - Available for future enhancements (e.g., analytics, state verification)
+
+### Onboarding Flow
+
+First-launch users see a 3-page swipeable tutorial before accessing the main app:
+
+**Pages:**
+1. "What is Golf Tempo?" - Explains 3:1 ratio and timing concepts
+2. "Three Simple Tones" - Describes the purpose of each tone
+3. "Start with 24/8" - Recommends a starting tempo
+
+**Implementation:**
+- `app/_layout.tsx` checks `hasCompletedOnboarding` from settings store
+- Shows loading screen while AsyncStorage hydrates (`_hasHydrated` flag)
+- Uses `<Redirect href="/onboarding" />` for first-launch redirect
+- `app/onboarding.tsx` uses horizontal FlatList with paging
+- Skip button and Get Started both call `completeOnboarding()` and redirect to `/(tabs)`
+- State is persisted, so subsequent launches skip onboarding
