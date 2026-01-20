@@ -14,7 +14,7 @@ on:
 jobs:
   e2e-ios:
     name: iOS E2E Tests
-    runs-on: macos-14
+    runs-on: macos-15
 
     steps:
       - name: Checkout code
