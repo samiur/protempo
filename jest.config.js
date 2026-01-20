@@ -14,6 +14,8 @@ module.exports = {
     '!**/node_modules/**',
     '!**/coverage/**',
     '!**/__tests__/**',
+    '!**/e2e/**',
+    '!**/types/**',
     '!*.config.js',
   ],
   coverageThreshold: {
