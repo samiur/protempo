@@ -73,8 +73,8 @@ Storage: AsyncStorage (settings, sessions) + FileSystem (videos)
 |---------|---------|-------------|
 | Haptic Mode | 17-18 | Vibration patterns mirror audio tones |
 | Session History | 19-23 | Log sessions, analytics, export |
-| Video Analysis | 24-31 | Record swings, ML tempo detection |
-| Tempo Tracks | 32-35 | Background music with tempo cues |
+| Video Analysis | 24-32 | Record swings, ML tempo detection, 10-swing calibration |
+| Tempo Tracks | 33-36 | Background music with tempo cues |
 
 ---
 
@@ -995,7 +995,169 @@ Create the analysis results screen showing detected tempo with the ability to ma
 - All tests pass
 ```
 
-### Prompt 31: Video Library Screen & E2E Tests
+### Prompt 31: Tempo Calibration Flow
+
+```text
+Create a calibration flow where users record 10 swings to establish their baseline tempo. This helps users understand their natural timing before training.
+
+**Requirements:**
+
+1. Create `types/calibration.ts`:
+   ```typescript
+   interface TempoBaseline {
+     id: string
+     createdAt: number
+     updatedAt: number
+     mode: 'long' | 'short'
+     swingCount: number // target: 10
+     isComplete: boolean
+
+     // Aggregate statistics
+     averageBackswingFrames: number
+     averageDownswingFrames: number
+     averageRatio: number
+     averageTotalTime: number // milliseconds
+
+     // Consistency metrics
+     ratioStdDev: number
+     consistencyScore: number // 0-100, higher = more consistent
+
+     // Individual swings
+     swings: CalibrationSwing[]
+
+     // Recommendations
+     closestPreset: TempoPreset
+     comparisonToTour: 'faster' | 'slower' | 'similar'
+     percentDifferenceFromTour: number
+   }
+
+   interface CalibrationSwing {
+     id: string
+     videoId: string
+     backswingFrames: number
+     downswingFrames: number
+     ratio: number
+     totalFrames: number
+     recordedAt: number
+     confidence: number
+   }
+
+   interface CalibrationProgress {
+     currentSwing: number // 1-10
+     totalSwings: number // 10
+     swingsCompleted: CalibrationSwing[]
+     mode: 'long' | 'short'
+     startedAt: number
+   }
+   ```
+
+2. Create `lib/calibrationStorage.ts`:
+   - `saveBaseline(baseline: TempoBaseline): Promise<void>`
+   - `getBaseline(mode: 'long' | 'short'): Promise<TempoBaseline | null>`
+   - `getAllBaselines(): Promise<TempoBaseline[]>`
+   - `deleteBaseline(id: string): Promise<void>`
+   - `hasCompletedCalibration(mode: 'long' | 'short'): Promise<boolean>`
+   - Store in AsyncStorage with key `protempo:calibration:`
+
+3. Create `lib/calibrationStats.ts`:
+   - `calculateAverages(swings: CalibrationSwing[]): AggregateStats`
+   - `calculateStdDev(values: number[]): number`
+   - `calculateConsistencyScore(ratioStdDev: number): number`
+   - `findClosestPreset(ratio: number, mode: 'long' | 'short'): TempoPreset`
+   - `compareToTourAverage(ratio: number, mode: 'long' | 'short'): TourComparison`
+   - `generateRecommendation(baseline: TempoBaseline): string`
+   - Tour average reference: Long game 3:1 (24/8), Short game 2:1 (18/9)
+
+4. Create `stores/calibrationStore.ts`:
+   ```typescript
+   interface CalibrationState {
+     isCalibrating: boolean
+     progress: CalibrationProgress | null
+     currentBaseline: TempoBaseline | null
+
+     // Actions
+     startCalibration(mode: 'long' | 'short'): void
+     recordSwing(swing: CalibrationSwing): void
+     completeCalibration(): Promise<TempoBaseline>
+     cancelCalibration(): void
+     loadBaseline(mode: 'long' | 'short'): Promise<void>
+   }
+   ```
+
+5. Create `app/calibrate.tsx` (stack screen):
+   - Entry point for calibration flow
+   - Mode selection if not passed: "Calibrate Long Game" / "Calibrate Short Game"
+   - Shows current baseline if exists with "Recalibrate" option
+   - Navigation to calibration recording flow
+
+6. Create `app/calibrate/record.tsx`:
+   - Guided recording flow for 10 swings
+   - Progress indicator: "Swing 3 of 10"
+   - Camera preview (reuse from Prompt 26)
+   - Instructions: "Take a full swing at your normal pace"
+   - Record button
+   - Auto-analyze after each recording
+   - Show quick result after analysis
+   - "Next Swing" button to continue
+   - "Finish Early" option (minimum 5 swings)
+
+7. Create `components/calibration/CalibrationProgress.tsx`:
+   - Visual progress bar or dots (1-10)
+   - Current swing number
+   - Swings completed vs remaining
+
+8. Create `components/calibration/SwingResult.tsx`:
+   - Quick result after each swing analysis
+   - Shows: ratio, backswing time, downswing time
+   - Confidence indicator
+   - Checkmark animation on success
+   - "Retake" option if confidence low
+
+9. Create `components/calibration/CalibrationSummary.tsx`:
+   - Final results after 10 swings
+   - Large ratio display with visual
+   - Stats breakdown:
+     - Average backswing: X.XX seconds
+     - Average downswing: X.XX seconds
+     - Consistency score: XX%
+   - Comparison section:
+     - "Your tempo: 2.8:1"
+     - "Tour average: 3:1"
+     - "You're 7% faster than tour average"
+   - Recommendation:
+     - "Closest preset: 27/9"
+     - "Try practicing with 24/8 to develop tour tempo"
+   - "Save & Continue" button
+   - "View Details" to see individual swings
+
+10. Create `components/calibration/BaselineCard.tsx`:
+    - Display saved baseline on Video tab
+    - Shows: ratio, consistency, date
+    - Tap to view details or recalibrate
+
+11. Update `app/(tabs)/video.tsx`:
+    - Add "Calibrate Tempo" button/card
+    - Show existing baseline if available
+    - "Not calibrated yet" prompt for new users
+
+12. Write tests:
+    - `__tests__/lib/calibrationStorage.test.ts`
+    - `__tests__/lib/calibrationStats.test.ts`
+    - `__tests__/stores/calibrationStore.test.ts`
+    - `__tests__/components/calibration/CalibrationSummary.test.tsx`
+    - `__tests__/components/calibration/SwingResult.test.tsx`
+
+**Acceptance Criteria:**
+- User can complete 10-swing calibration flow
+- Statistics calculated correctly (averages, std dev)
+- Consistency score reflects swing-to-swing variation
+- Closest preset recommendation is accurate
+- Baseline persists across app restarts
+- Can recalibrate to update baseline
+- All tests pass
+```
+
+### Prompt 32: Video Library Screen & E2E Tests
 
 ```text
 Create the video library screen and comprehensive E2E tests for the video flow.
@@ -1066,9 +1228,9 @@ Create the video library screen and comprehensive E2E tests for the video flow.
 
 ---
 
-## Phase 12: Tempo Tracks / Background Music (Prompts 32-35)
+## Phase 12: Tempo Tracks / Background Music (Prompts 33-36)
 
-### Prompt 32: Track Data Model & Constants
+### Prompt 33: Track Data Model & Constants
 
 ```text
 Create the data model for tempo tracks (background music with embedded tempo cues).
@@ -1144,7 +1306,7 @@ Create the data model for tempo tracks (background music with embedded tempo cue
 - All tests pass
 ```
 
-### Prompt 33: Music Player Engine
+### Prompt 34: Music Player Engine
 
 ```text
 Create the music player engine that handles background music playback mixed with tempo cues.
@@ -1207,7 +1369,7 @@ Create the music player engine that handles background music playback mixed with
 - All tests pass
 ```
 
-### Prompt 34: Track Picker UI & Preview
+### Prompt 35: Track Picker UI & Preview
 
 ```text
 Create the UI for selecting and previewing tempo tracks.
@@ -1267,7 +1429,7 @@ Create the UI for selecting and previewing tempo tracks.
 - All tests pass
 ```
 
-### Prompt 35: Music Integration & Settings
+### Prompt 36: Music Integration & Settings
 
 ```text
 Integrate the music player with the main app and add music settings.
@@ -1357,6 +1519,8 @@ Integrate the music player with the main app and add music settings.
 │   ├── onboarding.tsx
 │   ├── capture.tsx              # NEW: Video recording
 │   ├── videos.tsx               # NEW: Video library
+│   ├── calibrate.tsx            # NEW: Calibration entry
+│   ├── calibrate/record.tsx     # NEW: 10-swing calibration flow
 │   ├── analysis/[id].tsx        # NEW: Video analysis
 │   ├── session/[id].tsx         # NEW: Session detail
 │   └── (tabs)/
@@ -1386,6 +1550,11 @@ Integrate the music player with the main app and add music settings.
 │   │   ├── FrameAdjuster.tsx
 │   │   ├── VideoGrid.tsx
 │   │   └── VideoCard.tsx
+│   ├── calibration/             # NEW
+│   │   ├── CalibrationProgress.tsx
+│   │   ├── SwingResult.tsx
+│   │   ├── CalibrationSummary.tsx
+│   │   └── BaselineCard.tsx
 │   ├── music/                   # NEW
 │   │   ├── TrackPicker.tsx
 │   │   ├── TrackCard.tsx
@@ -1413,13 +1582,16 @@ Integrate the music player with the main app and add music settings.
 │   ├── frameExtractor.ts        # NEW
 │   ├── poseAnalyzer.ts          # NEW
 │   ├── swingAnalysisUtils.ts    # NEW
+│   ├── calibrationStorage.ts    # NEW
+│   ├── calibrationStats.ts      # NEW
 │   ├── musicPlayer.ts           # NEW
 │   ├── audioMixer.ts            # NEW
 │   └── trackUtils.ts            # NEW
 ├── stores/
 │   ├── settingsStore.ts         # Updated
 │   ├── sessionStore.ts
-│   └── sessionHistoryStore.ts   # NEW
+│   ├── sessionHistoryStore.ts   # NEW
+│   └── calibrationStore.ts      # NEW
 ├── hooks/
 │   ├── useVideoCapture.ts       # NEW
 │   ├── useVideoPlayback.ts      # NEW
@@ -1428,6 +1600,7 @@ Integrate the music player with the main app and add music settings.
 │   ├── session.ts               # NEW
 │   ├── video.ts                 # NEW
 │   ├── swingDetection.ts        # NEW
+│   ├── calibration.ts           # NEW
 │   ├── audioTrack.ts            # NEW
 │   └── haptic.ts                # NEW
 ├── constants/

@@ -1,7 +1,7 @@
 # ProTempo - Implementation Progress
 
 **Status:** V1 Complete ✅ | V2 In Progress
-**V1 Tests:** 592 unit tests + 30 E2E tests passing
+**V1 Tests:** 633 unit tests + 30 E2E tests passing
 **CI/CD:** GitHub Actions configured and running
 
 ---
@@ -46,23 +46,24 @@ All 16 prompts completed:
 
 | Prompt | Description | Status |
 |--------|-------------|--------|
-| 24 | Video Data Model & File Storage | ⬜ |
+| 24 | Video Data Model & File Storage | ✅ |
 | 25 | Camera Capture Hook & Permissions | ⬜ |
 | 26 | Video Recording Screen | ⬜ |
 | 27 | Video Player Component & Frame Scrubbing | ⬜ |
 | 28 | Swing Detector Interface & Mock Implementation | ⬜ |
 | 29 | ML Model Implementation | ⬜ |
 | 30 | Analysis Results Screen & Manual Adjustment | ⬜ |
-| 31 | Video Library Screen & E2E Tests | ⬜ |
+| 31 | **Tempo Calibration Flow (10-swing baseline)** | ⬜ |
+| 32 | Video Library Screen & E2E Tests | ⬜ |
 
 ### Phase 12: Tempo Tracks (Background Music)
 
 | Prompt | Description | Status |
 |--------|-------------|--------|
-| 32 | Track Data Model & Constants | ⬜ |
-| 33 | Music Player Engine | ⬜ |
-| 34 | Track Picker UI & Preview | ⬜ |
-| 35 | Music Integration & Settings | ⬜ |
+| 33 | Track Data Model & Constants | ⬜ |
+| 34 | Music Player Engine | ⬜ |
+| 35 | Track Picker UI & Preview | ⬜ |
+| 36 | Music Integration & Settings | ⬜ |
 
 ---
 
@@ -72,23 +73,32 @@ All 16 prompts completed:
 |---------|---------|------------------|--------------|
 | Haptic Mode | 17-18 | Small | None |
 | Session History | 19-23 | Medium | None |
-| Video Analysis | 24-31 | Large | expo-camera, ML model |
-| Tempo Tracks | 32-35 | Medium | Audio assets |
+| Video Analysis | 24-32 | Large | expo-camera, ML model |
+| Tempo Tracks | 33-36 | Medium | Audio assets |
 
 **Current Priority:** Video Analysis (Phase 11)
+
+### Calibration Feature (Prompt 31)
+Record 10 swings to establish baseline tempo:
+- Guided recording flow with progress indicator
+- Auto-analyze each swing
+- Calculate averages, consistency score
+- Compare to tour average (3:1 long, 2:1 short)
+- Recommend closest preset
 
 ---
 
 ## Next Steps
 
-1. **Prompt 24**: Video Data Model & File Storage
+1. ~~**Prompt 24**: Video Data Model & File Storage~~ ✅
 2. **Prompt 25**: Camera Capture Hook & Permissions
 3. **Prompt 26**: Video Recording Screen
 4. **Prompt 27**: Video Player Component & Frame Scrubbing
 5. **Prompt 28**: Swing Detector Interface & Mock
 6. **Prompt 29**: ML Model Implementation
 7. **Prompt 30**: Analysis Results Screen
-8. **Prompt 31**: Video Library & E2E Tests
+8. **Prompt 31**: Tempo Calibration Flow (10-swing baseline)
+9. **Prompt 32**: Video Library & E2E Tests
 
 Reference `plan.md` for detailed prompt instructions. Follow TDD.
 
@@ -101,6 +111,7 @@ Reference `plan.md` for detailed prompt instructions. Follow TDD.
 | 2025-01-19 | Project initialized (Expo SDK 54) |
 | 2026-01-19 | V1 MVP completed (16 prompts) |
 | 2026-01-19 | V2 planning complete (19 new prompts) |
+| 2026-01-19 | Prompt 24 complete: Video Data Model & File Storage |
 
 ---
 

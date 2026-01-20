@@ -15,7 +15,7 @@ ProTempo is a cross-platform mobile app that helps golfers improve swing consist
 | Navigation | Expo Router |
 | State | Zustand |
 | Audio | expo-audio |
-| Storage | AsyncStorage |
+| Storage | AsyncStorage + expo-file-system |
 | Unit Testing | Jest + React Native Testing Library |
 | E2E Testing | Detox |
 | Linting | ESLint + Prettier |
@@ -68,6 +68,10 @@ ProTempo is a cross-platform mobile app that helps golfers improve swing consist
 - `hooks/useAppState.ts` - Tracks app lifecycle state changes (active, background, inactive)
 - `app/onboarding.tsx` - 3-page swipeable tutorial for first-launch users
 - `app/_layout.tsx` - Root layout with hydration loading and onboarding redirect
+- `types/video.ts` - Type definitions for swing videos, analysis results, and metadata
+- `lib/videoStorage.ts` - AsyncStorage CRUD operations for video metadata with index management
+- `lib/videoFileManager.ts` - File operations for video storage and thumbnail generation (expo-file-system SDK 54)
+- `constants/videoSettings.ts` - Video recording limits, FPS targets, and storage paths
 
 ## Development Commands
 
@@ -294,3 +298,33 @@ The project uses GitHub Actions for continuous integration and testing.
 - `.npmrc` with `legacy-peer-deps=true` is required for Expo's complex dependency tree
 - The `jest.config.js` excludes `e2e/` and `types/` from coverage to meet thresholds
 - Coverage thresholds are set to 70% for all metrics (statements, branches, functions, lines)
+
+### Video Storage (V2 Feature - In Progress)
+
+The video analysis feature stores swing videos and their analysis results:
+
+**Data Model (`types/video.ts`):**
+- `SwingVideo` - Video metadata including URI, dimensions, FPS, and optional analysis
+- `SwingAnalysis` - Detected swing phases (takeaway, top, impact frames) with ratio calculation
+- `VideoMetadata` - Technical video properties (duration, fps, width, height)
+
+**Storage Architecture:**
+- Video metadata stored in AsyncStorage with index (`protempo:video:index`)
+- Video files stored in document directory (`videos/`)
+- Thumbnails stored separately (`thumbnails/`)
+- Uses expo-file-system SDK 54 class-based API (File, Directory, Paths)
+
+**Key Files:**
+- `lib/videoStorage.ts` - CRUD operations for video metadata
+- `lib/videoFileManager.ts` - File operations using SDK 54 classes
+- `constants/videoSettings.ts` - Configuration constants
+
+**Jest Mocking:**
+The `jest.setup.js` includes mocks for expo-file-system's SDK 54 API:
+- `File` class with `uri`, `exists`, `copy()`, `delete()` methods
+- `Directory` class with `uri`, `exists`, `create()`, `delete()`, `list()` methods
+- `Paths` static object with `document`, `cache`, `bundle` directories
+
+**Storage Keys:**
+- `protempo:video:index` - Array of video IDs
+- `protempo:video:{id}` - Individual video metadata
