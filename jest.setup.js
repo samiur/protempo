@@ -93,3 +93,5 @@ jest.mock('expo-audio', () => {
     createAudioPlayer: jest.fn(() => ({ ...mockPlayer })),
   }
 })
+
+// Also update the __mocks__/expo-audio mock if tests import it directly

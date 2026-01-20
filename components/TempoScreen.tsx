@@ -64,7 +64,7 @@ export default function TempoScreen({
   const setGameMode = useSessionStore((s) => s.setGameMode)
 
   // Audio manager hook
-  const { playTone, isLoaded, setVolume } = useAudioManager({
+  const { playTone, isLoaded, setVolume, activateSession, deactivateSession } = useAudioManager({
     toneStyle,
     volume,
   })
@@ -122,10 +122,12 @@ export default function TempoScreen({
         onTonePlayed: () => {},
         onRepComplete: incrementRepCount,
         onPlaybackStart: () => {
+          activateSession()
           setPlaying(true)
           setPaused(false)
         },
         onPlaybackStop: () => {
+          deactivateSession()
           setPlaying(false)
           setPaused(false)
           resetRepCount()
@@ -143,6 +145,8 @@ export default function TempoScreen({
     setPaused,
     resetRepCount,
     presets,
+    activateSession,
+    deactivateSession,
   ])
 
   // Handlers

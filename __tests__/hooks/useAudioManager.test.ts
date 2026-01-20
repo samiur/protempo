@@ -206,8 +206,8 @@ describe('useAudioManager', () => {
       // Voice mode should create separate players for back, down, hit
       renderHook(() => useAudioManager({ toneStyle: 'voice' }))
 
-      // useAudioPlayer should be called 4 times: beep (null), back, down, hit
-      expect(mockUseAudioPlayer).toHaveBeenCalledTimes(4)
+      // useAudioPlayer should be called 5 times: beep (null), back, down, hit, silence
+      expect(mockUseAudioPlayer).toHaveBeenCalledTimes(5)
     })
   })
 })

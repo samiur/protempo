@@ -2,7 +2,12 @@
 // ABOUTME: Provides preloading and playTone function for tempo training tones.
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useAudioPlayer, useAudioPlayerStatus, setAudioModeAsync } from 'expo-audio'
+import {
+  useAudioPlayer,
+  useAudioPlayerStatus,
+  setAudioModeAsync,
+  setIsAudioActiveAsync,
+} from 'expo-audio'
 import type { AudioPlayer } from 'expo-audio'
 import type { ToneStyle } from '../types/tempo'
 
@@ -13,6 +18,7 @@ const AUDIO_SOURCES = {
   voiceBack: require('../assets/audio/tone-voice-back.wav'),
   voiceDown: require('../assets/audio/tone-voice-down.wav'),
   voiceHit: require('../assets/audio/tone-voice-hit.wav'),
+  silence: require('../assets/audio/silence.wav'),
 }
 /* eslint-enable @typescript-eslint/no-require-imports */
 
@@ -30,8 +36,12 @@ export interface UseAudioManagerReturn {
   setVolume: (volume: number) => void
   /** Current tone style */
   toneStyle: ToneStyle
-  /** Update tone style (requires remounting with new style) */
+  /** Current volume level */
   currentVolume: number
+  /** Activate audio session for background playback */
+  activateSession: () => Promise<void>
+  /** Deactivate audio session when done */
+  deactivateSession: () => Promise<void>
 }
 
 /**
@@ -52,6 +62,9 @@ export function useAudioManager(options: UseAudioManagerOptions = {}): UseAudioM
   const voiceBackPlayer = useAudioPlayer(toneStyle === 'voice' ? AUDIO_SOURCES.voiceBack : null)
   const voiceDownPlayer = useAudioPlayer(toneStyle === 'voice' ? AUDIO_SOURCES.voiceDown : null)
   const voiceHitPlayer = useAudioPlayer(toneStyle === 'voice' ? AUDIO_SOURCES.voiceHit : null)
+
+  // Silent audio player for keeping audio session alive during background playback
+  const silencePlayer = useAudioPlayer(AUDIO_SOURCES.silence)
 
   // Use reactive status hooks to get loading state updates
   // The player.isLoaded property is NOT reactive - must use useAudioPlayerStatus
@@ -144,11 +157,32 @@ export function useAudioManager(options: UseAudioManagerOptions = {}): UseAudioM
     setCurrentVolume(clampedVolume)
   }, [])
 
+  // Activate audio session - starts silent loop to keep audio alive in background
+  const activateSession = useCallback(async () => {
+    await setIsAudioActiveAsync(true)
+    if (silencePlayer && silencePlayer.isLoaded) {
+      silencePlayer.loop = true
+      silencePlayer.volume = 0
+      silencePlayer.play()
+    }
+  }, [silencePlayer])
+
+  // Deactivate audio session - stops silent loop
+  const deactivateSession = useCallback(async () => {
+    if (silencePlayer) {
+      silencePlayer.pause()
+      silencePlayer.loop = false
+    }
+    await setIsAudioActiveAsync(false)
+  }, [silencePlayer])
+
   return {
     playTone,
     isLoaded,
     setVolume,
     toneStyle,
     currentVolume,
+    activateSession,
+    deactivateSession,
   }
 }
