@@ -289,3 +289,8 @@ The project uses GitHub Actions for continuous integration and testing.
 - npm dependencies cached via `actions/setup-node`
 - CocoaPods cached for iOS builds
 - Detox build artifacts cached to speed up subsequent runs
+
+**CI Configuration Notes:**
+- `.npmrc` with `legacy-peer-deps=true` is required for Expo's complex dependency tree
+- The `jest.config.js` excludes `e2e/` and `types/` from coverage to meet thresholds
+- Coverage thresholds are set to 70% for all metrics (statements, branches, functions, lines)

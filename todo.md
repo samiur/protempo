@@ -199,7 +199,7 @@
 | 2026-01-19 | Prompt 13: Settings Screen | Complete | Full settings UI with SettingsSection, SettingsRow, PresetPicker, DelayPicker components, tone preview, reset to defaults, 88 new tests, 545 total tests |
 | 2026-01-19 | Prompt 14: Background Audio & Lifecycle | Complete | expo-keep-awake hook, useAppState hook for lifecycle, app.json background modes, audio interruption handling, 13 new tests, 558 total tests |
 | 2026-01-19 | Prompt 15: Onboarding Flow | Complete | 3-page swipeable tutorial, first-launch detection with deferred navigation, Detox E2E fully working (30 E2E tests), 592 unit tests |
-| 2026-01-19 | Prompt 16: CI/CD Workflows | Complete | GitHub Actions CI for lint/typecheck/tests, E2E workflow for iOS Detox, caching configured, status badges in README |
+| 2026-01-19 | Prompt 16: CI/CD Workflows | Complete | GitHub Actions CI for lint/typecheck/tests, E2E workflow for iOS Detox, caching configured, status badges in README, .npmrc for Expo peer deps |
 
 ---
 
