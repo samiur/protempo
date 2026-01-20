@@ -208,19 +208,40 @@ First-launch users see a 3-page swipeable tutorial before accessing the main app
 
 ### E2E Testing with Detox
 
-End-to-end tests verify the app works correctly on real devices/simulators:
+End-to-end tests verify the app works correctly on real devices/simulators.
 
-**Setup:**
-1. `npx expo prebuild` - Generates native iOS/Android projects
-2. `npm run e2e:build:ios` - Builds the iOS app for testing
-3. `npm run e2e:test:ios` - Runs E2E tests on iOS simulator
+**Prerequisites:**
+- `brew tap wix/brew && brew install applesimutils` - Required for iOS simulator control
+- iOS Simulator with iPhone 16 (or update `.detoxrc.js` for available device)
 
-**Test Files:**
-- `e2e/onboarding.test.ts` - First-launch flow, navigation, skip/complete
-- `e2e/mainApp.test.ts` - Tab navigation, playback, settings
+**Setup & Running:**
+```bash
+npx expo prebuild         # Generate native iOS/Android projects (first time)
+npm run e2e:ios           # Build and run E2E tests (release build)
+npm run e2e:test:ios      # Run tests only (if already built)
+```
+
+**Test Files (30 tests total):**
+- `e2e/onboarding.test.ts` (12 tests) - First-launch flow, navigation, skip/complete, persistence
+- `e2e/mainApp.test.ts` (18 tests) - Tab navigation, Long/Short Game screens, Settings, Playback
+
+**Configuration:**
+- `.detoxrc.js` - Detox configuration (devices, apps, build commands)
+- `e2e/jest.config.js` - Jest configuration for Detox runner
+- Uses release builds by default (bundles JS, no Metro needed)
 
 **Key Patterns:**
-- Use `element(by.id('...'))` for testID-based selectors
-- Use `element(by.text('...'))` for text-based selectors
-- Clear keychain in `beforeEach` to simulate first launch
-- E2E tests catch issues that unit tests miss (navigation context, timing, etc.)
+- Always call `device.launchApp()` BEFORE `device.disableSynchronization()`
+- Use `device.disableSynchronization()` to avoid timeouts from background tasks
+- Add `await new Promise(resolve => setTimeout(resolve, 3000))` after launch for app to settle
+- Use `element(by.text('...')).atIndex(0)` when text appears multiple times (tab + header)
+- Use `toExist()` instead of `toBeVisible()` for elements that may be partially off-screen
+- Scroll before checking elements at bottom of scrollable views
+- Use `device.launchApp({ newInstance: true, delete: true })` to simulate first launch
+
+**TestIDs for components:**
+- `onboarding-screen`, `page-indicator-0/1/2` - Onboarding
+- `tempo-selector-scroll`, `rep-counter` - Tempo screens
+- `playback-controls`, `playback-play-button`, `playback-pause-button`, `playback-stop-button` - Playback
+- `session-controls` - Session controls
+- `segment-beep`, `segment-voice` - Settings tone style
