@@ -6,12 +6,20 @@ import { by, device, element, expect } from 'detox'
 describe('Onboarding Flow', () => {
   beforeAll(async () => {
     await device.launchApp({ newInstance: true })
+    // Disable synchronization to avoid timeout from background tasks
+    await device.disableSynchronization()
+  })
+
+  afterAll(async () => {
+    await device.enableSynchronization()
   })
 
   beforeEach(async () => {
     await device.reloadReactNative()
     // Clear AsyncStorage to simulate first launch
     await device.clearKeychain()
+    // Wait for app to settle
+    await new Promise((resolve) => setTimeout(resolve, 2000))
   })
 
   describe('First Launch', () => {

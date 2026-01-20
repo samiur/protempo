@@ -6,12 +6,20 @@ import { by, device, element, expect } from 'detox'
 describe('Main App', () => {
   beforeAll(async () => {
     await device.launchApp({ newInstance: true })
+    // Disable synchronization to avoid timeout from background tasks
+    await device.disableSynchronization()
+    // Wait for app to settle
+    await new Promise((resolve) => setTimeout(resolve, 2000))
     // Skip onboarding if it appears
     try {
       await element(by.text('Skip')).tap()
     } catch {
       // Already completed onboarding
     }
+  })
+
+  afterAll(async () => {
+    await device.enableSynchronization()
   })
 
   describe('Tab Navigation', () => {
@@ -121,12 +129,18 @@ describe('Main App', () => {
 describe('Playback', () => {
   beforeAll(async () => {
     await device.launchApp({ newInstance: true })
+    await device.disableSynchronization()
+    await new Promise((resolve) => setTimeout(resolve, 2000))
     // Skip onboarding
     try {
       await element(by.text('Skip')).tap()
     } catch {
       // Already done
     }
+  })
+
+  afterAll(async () => {
+    await device.enableSynchronization()
   })
 
   it('can start playback', async () => {
