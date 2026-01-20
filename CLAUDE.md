@@ -353,8 +353,8 @@ The `useVideoCapture` hook provides camera recording functionality for capturing
 - Returns recording result with URI and duration
 
 **Camera Utils (`lib/cameraUtils.ts`):**
-- `getBestVideoQuality(capabilities)` - Select optimal quality based on FPS
 - `formatRecordingTime(ms)` - Format duration as "M:SS"
+- `CameraCapabilities` interface - Describes device camera capabilities (maxFps, supportsSlowMotion, supportedRatios)
 
 **Permissions (app.json):**
 - iOS: `NSCameraUsageDescription` and `NSMicrophoneUsageDescription`

@@ -1,7 +1,7 @@
 # ProTempo - Implementation Progress
 
 **Status:** V1 Complete ✅ | V2 In Progress
-**V1 Tests:** 666 unit tests + 30 E2E tests passing
+**V2 Tests:** 660 unit tests + 30 E2E tests passing
 **CI/CD:** GitHub Actions configured and running
 
 ---
