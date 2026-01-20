@@ -2,13 +2,18 @@
 // ABOUTME: Verifies camera permission handling, recording lifecycle, and duration tracking.
 
 import { renderHook, act } from '@testing-library/react-native'
-import { useCameraPermissions, useMicrophonePermissions } from 'expo-camera'
+import {
+  useCameraPermission,
+  useMicrophonePermission,
+  useCameraFormat,
+} from 'react-native-vision-camera'
 import { useVideoCapture } from '../../hooks/useVideoCapture'
-import { MAX_VIDEO_DURATION } from '../../constants/videoSettings'
+import { MAX_VIDEO_DURATION, MIN_FPS } from '../../constants/videoSettings'
 
 // Get mock function references
-const mockUseCameraPermissions = useCameraPermissions as jest.Mock
-const mockUseMicrophonePermissions = useMicrophonePermissions as jest.Mock
+const mockUseCameraPermission = useCameraPermission as jest.Mock
+const mockUseMicrophonePermission = useMicrophonePermission as jest.Mock
+const mockUseCameraFormat = useCameraFormat as jest.Mock
 
 describe('useVideoCapture', () => {
   beforeEach(() => {
@@ -16,14 +21,19 @@ describe('useVideoCapture', () => {
     jest.useFakeTimers()
 
     // Default mock: permissions granted
-    mockUseCameraPermissions.mockReturnValue([
-      { granted: true, canAskAgain: true },
-      jest.fn().mockResolvedValue({ granted: true }),
-    ])
-    mockUseMicrophonePermissions.mockReturnValue([
-      { granted: true, canAskAgain: true },
-      jest.fn().mockResolvedValue({ granted: true }),
-    ])
+    mockUseCameraPermission.mockReturnValue({
+      hasPermission: true,
+      requestPermission: jest.fn().mockResolvedValue(true),
+    })
+    mockUseMicrophonePermission.mockReturnValue({
+      hasPermission: true,
+      requestPermission: jest.fn().mockResolvedValue(true),
+    })
+    mockUseCameraFormat.mockReturnValue({
+      maxFps: 240,
+      videoWidth: 1920,
+      videoHeight: 1080,
+    })
   })
 
   afterEach(() => {
@@ -50,13 +60,26 @@ describe('useVideoCapture', () => {
       expect(result.current.recordingDuration).toBe(0)
     })
 
-    it('should have null permission state before permissions are checked', () => {
-      mockUseCameraPermissions.mockReturnValue([null, jest.fn()])
-      mockUseMicrophonePermissions.mockReturnValue([null, jest.fn()])
+    it('should have null permission state when permissions are undefined', () => {
+      mockUseCameraPermission.mockReturnValue({
+        hasPermission: undefined,
+        requestPermission: jest.fn(),
+      })
+      mockUseMicrophonePermission.mockReturnValue({
+        hasPermission: undefined,
+        requestPermission: jest.fn(),
+      })
 
       const { result } = renderHook(() => useVideoCapture())
 
       expect(result.current.hasPermission).toBeNull()
+    })
+
+    it('should provide device and format from VisionCamera hooks', () => {
+      const { result } = renderHook(() => useVideoCapture())
+
+      expect(result.current.device).toBeDefined()
+      expect(result.current.format).toBeDefined()
     })
   })
 
@@ -68,7 +91,10 @@ describe('useVideoCapture', () => {
     })
 
     it('should return false when camera permission is not granted', () => {
-      mockUseCameraPermissions.mockReturnValue([{ granted: false, canAskAgain: true }, jest.fn()])
+      mockUseCameraPermission.mockReturnValue({
+        hasPermission: false,
+        requestPermission: jest.fn(),
+      })
 
       const { result } = renderHook(() => useVideoCapture())
 
@@ -76,10 +102,10 @@ describe('useVideoCapture', () => {
     })
 
     it('should return false when microphone permission is not granted', () => {
-      mockUseMicrophonePermissions.mockReturnValue([
-        { granted: false, canAskAgain: true },
-        jest.fn(),
-      ])
+      mockUseMicrophonePermission.mockReturnValue({
+        hasPermission: false,
+        requestPermission: jest.fn(),
+      })
 
       const { result } = renderHook(() => useVideoCapture())
 
@@ -87,17 +113,17 @@ describe('useVideoCapture', () => {
     })
 
     it('should request both permissions when requestPermission is called', async () => {
-      const mockRequestCamera = jest.fn().mockResolvedValue({ granted: true })
-      const mockRequestMic = jest.fn().mockResolvedValue({ granted: true })
+      const mockRequestCamera = jest.fn().mockResolvedValue(true)
+      const mockRequestMic = jest.fn().mockResolvedValue(true)
 
-      mockUseCameraPermissions.mockReturnValue([
-        { granted: false, canAskAgain: true },
-        mockRequestCamera,
-      ])
-      mockUseMicrophonePermissions.mockReturnValue([
-        { granted: false, canAskAgain: true },
-        mockRequestMic,
-      ])
+      mockUseCameraPermission.mockReturnValue({
+        hasPermission: false,
+        requestPermission: mockRequestCamera,
+      })
+      mockUseMicrophonePermission.mockReturnValue({
+        hasPermission: false,
+        requestPermission: mockRequestMic,
+      })
 
       const { result } = renderHook(() => useVideoCapture())
 
@@ -112,17 +138,17 @@ describe('useVideoCapture', () => {
     })
 
     it('should return false if camera permission is denied on request', async () => {
-      const mockRequestCamera = jest.fn().mockResolvedValue({ granted: false })
-      const mockRequestMic = jest.fn().mockResolvedValue({ granted: true })
+      const mockRequestCamera = jest.fn().mockResolvedValue(false)
+      const mockRequestMic = jest.fn().mockResolvedValue(true)
 
-      mockUseCameraPermissions.mockReturnValue([
-        { granted: false, canAskAgain: true },
-        mockRequestCamera,
-      ])
-      mockUseMicrophonePermissions.mockReturnValue([
-        { granted: false, canAskAgain: true },
-        mockRequestMic,
-      ])
+      mockUseCameraPermission.mockReturnValue({
+        hasPermission: false,
+        requestPermission: mockRequestCamera,
+      })
+      mockUseMicrophonePermission.mockReturnValue({
+        hasPermission: false,
+        requestPermission: mockRequestMic,
+      })
 
       const { result } = renderHook(() => useVideoCapture())
 
@@ -135,17 +161,17 @@ describe('useVideoCapture', () => {
     })
 
     it('should return false if microphone permission is denied on request', async () => {
-      const mockRequestCamera = jest.fn().mockResolvedValue({ granted: true })
-      const mockRequestMic = jest.fn().mockResolvedValue({ granted: false })
+      const mockRequestCamera = jest.fn().mockResolvedValue(true)
+      const mockRequestMic = jest.fn().mockResolvedValue(false)
 
-      mockUseCameraPermissions.mockReturnValue([
-        { granted: false, canAskAgain: true },
-        mockRequestCamera,
-      ])
-      mockUseMicrophonePermissions.mockReturnValue([
-        { granted: false, canAskAgain: true },
-        mockRequestMic,
-      ])
+      mockUseCameraPermission.mockReturnValue({
+        hasPermission: false,
+        requestPermission: mockRequestCamera,
+      })
+      mockUseMicrophonePermission.mockReturnValue({
+        hasPermission: false,
+        requestPermission: mockRequestMic,
+      })
 
       const { result } = renderHook(() => useVideoCapture())
 
@@ -160,16 +186,14 @@ describe('useVideoCapture', () => {
 
   describe('recording', () => {
     it('should start recording when startRecording is called', async () => {
-      const mockRecordAsync = jest.fn().mockResolvedValue({
-        uri: 'file:///mock/video.mp4',
-      })
+      const mockStartRecording = jest.fn()
 
       const { result } = renderHook(() => useVideoCapture())
 
       // Assign mock to the camera ref
       Object.assign(result.current.cameraRef, {
         current: {
-          recordAsync: mockRecordAsync,
+          startRecording: mockStartRecording,
           stopRecording: jest.fn(),
         },
       })
@@ -179,21 +203,17 @@ describe('useVideoCapture', () => {
       })
 
       expect(result.current.isRecording).toBe(true)
+      expect(mockStartRecording).toHaveBeenCalled()
     })
 
     it('should track recording duration while recording', async () => {
-      const mockRecordAsync = jest.fn().mockImplementation(
-        () =>
-          new Promise(() => {
-            // Never resolves to simulate ongoing recording
-          })
-      )
+      const mockStartRecording = jest.fn()
 
       const { result } = renderHook(() => useVideoCapture())
 
       Object.assign(result.current.cameraRef, {
         current: {
-          recordAsync: mockRecordAsync,
+          startRecording: mockStartRecording,
           stopRecording: jest.fn(),
         },
       })
@@ -221,19 +241,17 @@ describe('useVideoCapture', () => {
 
     it('should stop recording when stopRecording is called', async () => {
       const mockStopRecording = jest.fn()
-      let resolveRecording: (value: { uri: string }) => void
-      const mockRecordAsync = jest.fn().mockImplementation(
-        () =>
-          new Promise((resolve) => {
-            resolveRecording = resolve
-          })
-      )
+      let onRecordingFinished: ((video: { path: string }) => void) | undefined
+
+      const mockStartRecording = jest.fn(({ onRecordingFinished: cb }) => {
+        onRecordingFinished = cb
+      })
 
       const { result } = renderHook(() => useVideoCapture())
 
       Object.assign(result.current.cameraRef, {
         current: {
-          recordAsync: mockRecordAsync,
+          startRecording: mockStartRecording,
           stopRecording: mockStopRecording,
         },
       })
@@ -244,10 +262,14 @@ describe('useVideoCapture', () => {
 
       expect(result.current.isRecording).toBe(true)
 
-      // Simulate recording completing
+      // Stop recording and trigger the callback
       await act(async () => {
-        resolveRecording({ uri: 'file:///mock/video.mp4' })
-        const stopResult = await result.current.stopRecording()
+        const stopPromise = result.current.stopRecording()
+        // Simulate the callback being called
+        if (onRecordingFinished) {
+          onRecordingFinished({ path: 'file:///mock/video.mp4' })
+        }
+        const stopResult = await stopPromise
         expect(stopResult?.uri).toBe('file:///mock/video.mp4')
       })
 
@@ -257,18 +279,13 @@ describe('useVideoCapture', () => {
 
     it('should auto-stop at MAX_VIDEO_DURATION', async () => {
       const mockStopRecording = jest.fn()
-      const mockRecordAsync = jest.fn().mockImplementation(
-        () =>
-          new Promise(() => {
-            // Never resolves
-          })
-      )
+      const mockStartRecording = jest.fn()
 
       const { result } = renderHook(() => useVideoCapture())
 
       Object.assign(result.current.cameraRef, {
         current: {
-          recordAsync: mockRecordAsync,
+          startRecording: mockStartRecording,
           stopRecording: mockStopRecording,
         },
       })
@@ -287,19 +304,17 @@ describe('useVideoCapture', () => {
     })
 
     it('should reset duration when recording stops', async () => {
-      let resolveRecording: (value: { uri: string }) => void
-      const mockRecordAsync = jest.fn().mockImplementation(
-        () =>
-          new Promise((resolve) => {
-            resolveRecording = resolve
-          })
-      )
+      let onRecordingFinished: ((video: { path: string }) => void) | undefined
+
+      const mockStartRecording = jest.fn(({ onRecordingFinished: cb }) => {
+        onRecordingFinished = cb
+      })
 
       const { result } = renderHook(() => useVideoCapture())
 
       Object.assign(result.current.cameraRef, {
         current: {
-          recordAsync: mockRecordAsync,
+          startRecording: mockStartRecording,
           stopRecording: jest.fn(),
         },
       })
@@ -315,26 +330,24 @@ describe('useVideoCapture', () => {
       expect(result.current.recordingDuration).toBe(3000)
 
       await act(async () => {
-        resolveRecording({ uri: 'file:///mock/video.mp4' })
-        await result.current.stopRecording()
+        const stopPromise = result.current.stopRecording()
+        if (onRecordingFinished) {
+          onRecordingFinished({ path: 'file:///mock/video.mp4' })
+        }
+        await stopPromise
       })
 
       expect(result.current.recordingDuration).toBe(0)
     })
 
     it('should not start recording if already recording', async () => {
-      const mockRecordAsync = jest.fn().mockImplementation(
-        () =>
-          new Promise(() => {
-            // Never resolves
-          })
-      )
+      const mockStartRecording = jest.fn()
 
       const { result } = renderHook(() => useVideoCapture())
 
       Object.assign(result.current.cameraRef, {
         current: {
-          recordAsync: mockRecordAsync,
+          startRecording: mockStartRecording,
           stopRecording: jest.fn(),
         },
       })
@@ -347,8 +360,8 @@ describe('useVideoCapture', () => {
         result.current.startRecording()
       })
 
-      // recordAsync should only be called once
-      expect(mockRecordAsync).toHaveBeenCalledTimes(1)
+      // startRecording should only be called once
+      expect(mockStartRecording).toHaveBeenCalledTimes(1)
     })
 
     it('should not start recording without camera ref', async () => {
@@ -363,7 +376,13 @@ describe('useVideoCapture', () => {
   })
 
   describe('camera capabilities', () => {
-    it('should return camera capabilities', async () => {
+    it('should return camera capabilities from format', async () => {
+      mockUseCameraFormat.mockReturnValue({
+        maxFps: 240,
+        videoWidth: 1920,
+        videoHeight: 1080,
+      })
+
       const { result } = renderHook(() => useVideoCapture())
 
       let capabilities: Awaited<ReturnType<typeof result.current.getCameraCapabilities>>
@@ -372,18 +391,60 @@ describe('useVideoCapture', () => {
       })
 
       expect(capabilities!).toEqual({
-        maxFps: 60,
-        supportsSlowMotion: false,
+        maxFps: 240,
+        supportsSlowMotion: true,
         supportedRatios: ['16:9', '4:3'],
       })
+    })
+
+    it('should return slow motion support based on FPS', async () => {
+      mockUseCameraFormat.mockReturnValue({
+        maxFps: 60,
+        videoWidth: 1920,
+        videoHeight: 1080,
+      })
+
+      const { result } = renderHook(() => useVideoCapture())
+
+      let capabilities: Awaited<ReturnType<typeof result.current.getCameraCapabilities>>
+      await act(async () => {
+        capabilities = await result.current.getCameraCapabilities()
+      })
+
+      expect(capabilities!.supportsSlowMotion).toBe(false)
+    })
+
+    it('should fallback to MIN_FPS when format is null', async () => {
+      mockUseCameraFormat.mockReturnValue(null)
+
+      const { result } = renderHook(() => useVideoCapture())
+
+      expect(result.current.actualFps).toBe(MIN_FPS)
     })
   })
 
   describe('actual FPS tracking', () => {
-    it('should provide actualFps property', () => {
+    it('should provide actualFps from format', () => {
+      mockUseCameraFormat.mockReturnValue({
+        maxFps: 240,
+        videoWidth: 1920,
+        videoHeight: 1080,
+      })
+
       const { result } = renderHook(() => useVideoCapture())
 
-      expect(typeof result.current.actualFps).toBe('number')
+      expect(result.current.actualFps).toBe(240)
+    })
+
+    it('should fallback to MIN_FPS when format has no maxFps', () => {
+      mockUseCameraFormat.mockReturnValue({
+        videoWidth: 1920,
+        videoHeight: 1080,
+      })
+
+      const { result } = renderHook(() => useVideoCapture())
+
+      expect(result.current.actualFps).toBe(MIN_FPS)
     })
   })
 })

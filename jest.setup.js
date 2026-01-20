@@ -186,20 +186,37 @@ jest.mock('expo-video-thumbnails', () => ({
   }),
 }))
 
-// Mock expo-camera module globally
-jest.mock('expo-camera', () => {
+// Mock react-native-vision-camera module globally
+jest.mock('react-native-vision-camera', () => {
   const React = require('react')
 
-  // Mock CameraView component
-  const MockCameraView = React.forwardRef((props, ref) => {
+  // Store callbacks for testing
+  let recordingCallbacks = {
+    onRecordingFinished: null,
+    onRecordingError: null,
+  }
+
+  // Mock Camera component
+  const MockCamera = React.forwardRef((props, ref) => {
     const { View } = require('react-native')
 
     // Expose recording methods via ref
     React.useImperativeHandle(ref, () => ({
-      recordAsync: jest.fn().mockResolvedValue({
-        uri: 'file:///mock/video.mp4',
+      startRecording: jest.fn(({ onRecordingFinished, onRecordingError }) => {
+        recordingCallbacks.onRecordingFinished = onRecordingFinished
+        recordingCallbacks.onRecordingError = onRecordingError
       }),
-      stopRecording: jest.fn(),
+      stopRecording: jest.fn(() => {
+        // When stopRecording is called, trigger the onRecordingFinished callback
+        if (recordingCallbacks.onRecordingFinished) {
+          setTimeout(() => {
+            recordingCallbacks.onRecordingFinished({
+              path: 'file:///mock/video.mp4',
+              duration: 5000,
+            })
+          }, 0)
+        }
+      }),
     }))
 
     return React.createElement(View, {
@@ -209,14 +226,27 @@ jest.mock('expo-camera', () => {
   })
 
   return {
-    CameraView: MockCameraView,
-    useCameraPermissions: jest.fn(() => [
-      { granted: true, canAskAgain: true },
-      jest.fn().mockResolvedValue({ granted: true }),
-    ]),
-    useMicrophonePermissions: jest.fn(() => [
-      { granted: true, canAskAgain: true },
-      jest.fn().mockResolvedValue({ granted: true }),
-    ]),
+    Camera: MockCamera,
+    useCameraDevice: jest.fn(() => ({
+      id: 'back-camera',
+      position: 'back',
+      name: 'Back Camera',
+      hasFlash: true,
+      hasTorch: true,
+      formats: [],
+    })),
+    useCameraFormat: jest.fn(() => ({
+      maxFps: 240,
+      videoWidth: 1920,
+      videoHeight: 1080,
+    })),
+    useCameraPermission: jest.fn(() => ({
+      hasPermission: true,
+      requestPermission: jest.fn().mockResolvedValue(true),
+    })),
+    useMicrophonePermission: jest.fn(() => ({
+      hasPermission: true,
+      requestPermission: jest.fn().mockResolvedValue(true),
+    })),
   }
 })

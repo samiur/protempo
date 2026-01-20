@@ -1,9 +1,18 @@
-// ABOUTME: React hook for capturing high-speed video using the device camera.
+// ABOUTME: React hook for capturing high-speed video using react-native-vision-camera.
 // ABOUTME: Manages permissions, recording lifecycle, and duration tracking for golf swing videos.
 
 import { useCallback, useRef, useState, useEffect } from 'react'
-import { CameraView, useCameraPermissions, useMicrophonePermissions } from 'expo-camera'
-import { MAX_VIDEO_DURATION, MIN_FPS } from '../constants/videoSettings'
+import {
+  Camera,
+  CameraDevice,
+  CameraCaptureError,
+  useCameraDevice,
+  useCameraFormat,
+  useCameraPermission,
+  useMicrophonePermission,
+  VideoFile,
+} from 'react-native-vision-camera'
+import { MAX_VIDEO_DURATION, MIN_FPS, TARGET_FPS } from '../constants/videoSettings'
 import type { CameraCapabilities } from '../lib/cameraUtils'
 
 /**
@@ -20,20 +29,24 @@ export interface RecordingResult {
  * Return type for the useVideoCapture hook.
  */
 export interface UseVideoCaptureReturn {
-  /** Ref to attach to the CameraView component */
-  cameraRef: React.RefObject<CameraView | null>
+  /** Ref to attach to the Camera component */
+  cameraRef: React.RefObject<Camera | null>
+  /** The selected camera device (back camera) */
+  device: CameraDevice | undefined
+  /** The selected camera format for high-FPS recording */
+  format: ReturnType<typeof useCameraFormat>
   /** Whether the camera is currently recording */
   isRecording: boolean
   /** Current recording duration in milliseconds */
   recordingDuration: number
-  /** Actual FPS being used for recording */
+  /** Actual FPS being used for recording (from selected format) */
   actualFps: number
   /** Permission state: true if granted, false if denied, null if not yet determined */
   hasPermission: boolean | null
   /** Request camera and microphone permissions */
   requestPermission: () => Promise<boolean>
   /** Start recording video */
-  startRecording: () => Promise<void>
+  startRecording: () => void
   /** Stop recording and return the video result */
   stopRecording: () => Promise<RecordingResult | null>
   /** Get the camera's capabilities */
@@ -41,10 +54,11 @@ export interface UseVideoCaptureReturn {
 }
 
 /**
- * Hook for capturing high-speed video using the device camera.
+ * Hook for capturing high-speed video using react-native-vision-camera.
  *
  * Features:
  * - Manages camera and microphone permissions
+ * - Selects highest available FPS format (targets 240fps for golf swing analysis)
  * - Tracks recording duration with a timer
  * - Auto-stops recording at MAX_VIDEO_DURATION
  * - Provides camera capabilities for quality selection
@@ -52,25 +66,37 @@ export interface UseVideoCaptureReturn {
  * @returns Camera capture controls and state
  */
 export function useVideoCapture(): UseVideoCaptureReturn {
-  const cameraRef = useRef<CameraView | null>(null)
+  const cameraRef = useRef<Camera | null>(null)
   const [isRecording, setIsRecording] = useState(false)
   const [recordingDuration, setRecordingDuration] = useState(0)
-  const [actualFps] = useState(MIN_FPS)
 
-  // Track the recording promise and timer
-  const recordingPromiseRef = useRef<Promise<{ uri: string } | undefined> | null>(null)
+  // Track the recording promise resolve/reject and timer
+  const recordingResolveRef = useRef<((result: RecordingResult) => void) | null>(null)
+  const recordingRejectRef = useRef<((error: Error) => void) | null>(null)
   const durationTimerRef = useRef<NodeJS.Timeout | null>(null)
   const startTimeRef = useRef<number>(0)
 
-  // Use expo-camera permission hooks
-  const [cameraPermission, requestCameraPermission] = useCameraPermissions()
-  const [micPermission, requestMicPermission] = useMicrophonePermissions()
+  // Use VisionCamera device and format hooks
+  const device = useCameraDevice('back')
+  const format = useCameraFormat(device, [
+    { fps: TARGET_FPS }, // Priority 1: highest FPS (240fps target)
+    { videoAspectRatio: 16 / 9 }, // Priority 2: widescreen
+  ])
 
-  // Compute combined permission state
+  // Calculate actual FPS from selected format
+  const actualFps = format?.maxFps ?? MIN_FPS
+
+  // Use VisionCamera permission hooks
+  const { hasPermission: hasCameraPermission, requestPermission: requestCameraPermission } =
+    useCameraPermission()
+  const { hasPermission: hasMicPermission, requestPermission: requestMicPermission } =
+    useMicrophonePermission()
+
+  // Combined permission state: null if either is undetermined, otherwise both must be granted
   const hasPermission =
-    cameraPermission === null || micPermission === null
+    hasCameraPermission === undefined || hasMicPermission === undefined
       ? null
-      : cameraPermission.granted && micPermission.granted
+      : Boolean(hasCameraPermission && hasMicPermission)
 
   // Request both permissions
   const requestPermission = useCallback(async (): Promise<boolean> => {
@@ -79,7 +105,7 @@ export function useVideoCapture(): UseVideoCaptureReturn {
       requestMicPermission(),
     ])
 
-    return cameraResult.granted && micResult.granted
+    return cameraResult && micResult
   }, [requestCameraPermission, requestMicPermission])
 
   // Cleanup timer on unmount
@@ -118,65 +144,80 @@ export function useVideoCapture(): UseVideoCaptureReturn {
     setRecordingDuration(0)
   }, [])
 
-  // Start recording
-  const startRecording = useCallback(async (): Promise<void> => {
-    if (isRecording) {
-      return
-    }
+  const onRecordingFinished = useCallback(
+    (video: VideoFile) => {
+      const duration = Date.now() - startTimeRef.current
+      setIsRecording(false)
+      stopDurationTimer()
 
-    if (!cameraRef.current) {
+      if (recordingResolveRef.current) {
+        recordingResolveRef.current({ uri: video.path, duration })
+        recordingResolveRef.current = null
+        recordingRejectRef.current = null
+      }
+    },
+    [stopDurationTimer]
+  )
+
+  const onRecordingError = useCallback(
+    (error: CameraCaptureError) => {
+      setIsRecording(false)
+      stopDurationTimer()
+
+      if (recordingRejectRef.current) {
+        recordingRejectRef.current(new Error(error.message))
+        recordingResolveRef.current = null
+        recordingRejectRef.current = null
+      }
+    },
+    [stopDurationTimer]
+  )
+
+  const startRecording = useCallback((): void => {
+    if (isRecording || !cameraRef.current) {
       return
     }
 
     setIsRecording(true)
     startDurationTimer()
 
-    // Start recording and store the promise
-    recordingPromiseRef.current = cameraRef.current.recordAsync()
-  }, [isRecording, startDurationTimer])
+    cameraRef.current.startRecording({
+      onRecordingFinished,
+      onRecordingError,
+    })
+  }, [isRecording, startDurationTimer, onRecordingFinished, onRecordingError])
 
-  // Stop recording
   const stopRecording = useCallback(async (): Promise<RecordingResult | null> => {
     if (!cameraRef.current) {
       return null
     }
 
-    // Trigger stop
+    const resultPromise = new Promise<RecordingResult>((resolve, reject) => {
+      recordingResolveRef.current = resolve
+      recordingRejectRef.current = reject
+    })
+
     cameraRef.current.stopRecording()
 
-    // Wait for the recording promise to resolve
-    const result = await recordingPromiseRef.current
-
-    const duration = Date.now() - startTimeRef.current
-
-    // Clean up
-    setIsRecording(false)
-    stopDurationTimer()
-    recordingPromiseRef.current = null
-
-    if (!result) {
+    try {
+      return await resultPromise
+    } catch {
       return null
     }
+  }, [])
 
-    return {
-      uri: result.uri,
-      duration,
-    }
-  }, [stopDurationTimer])
-
-  // Get camera capabilities
   const getCameraCapabilities = useCallback(async (): Promise<CameraCapabilities> => {
-    // expo-camera doesn't expose detailed capabilities in JS
-    // Return reasonable defaults that can be overridden by device detection
     return {
       maxFps: actualFps,
-      supportsSlowMotion: actualFps > MIN_FPS,
+      supportsSlowMotion: actualFps >= 120,
       supportedRatios: ['16:9', '4:3'],
     }
   }, [actualFps])
 
   return {
     cameraRef,
+    device,
+    format,
     isRecording,
     recordingDuration,
     actualFps,
