@@ -26,11 +26,16 @@ export default function RootLayout() {
 
     const inOnboarding = segments[0] === 'onboarding'
 
-    if (!hasCompletedOnboarding && !inOnboarding) {
-      router.replace('/onboarding')
-    } else if (hasCompletedOnboarding && inOnboarding) {
-      router.replace('/(tabs)')
-    }
+    // Defer navigation to next tick to ensure Stack is fully mounted
+    const timeoutId = setTimeout(() => {
+      if (!hasCompletedOnboarding && !inOnboarding) {
+        router.replace('/onboarding')
+      } else if (hasCompletedOnboarding && inOnboarding) {
+        router.replace('/(tabs)')
+      }
+    }, 0)
+
+    return () => clearTimeout(timeoutId)
   }, [hasHydrated, hasCompletedOnboarding, segments, navigationState?.key])
 
   if (!hasHydrated) {

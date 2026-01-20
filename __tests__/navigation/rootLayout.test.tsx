@@ -38,13 +38,18 @@ jest.mock('expo-system-ui', () => ({
   setBackgroundColorAsync: jest.fn(),
 }))
 
-// Reset store before each test
+// Use fake timers for setTimeout in navigation
 beforeEach(() => {
+  jest.useFakeTimers()
   useSettingsStore.setState({
     hasCompletedOnboarding: false,
     _hasHydrated: false,
   })
   jest.clearAllMocks()
+})
+
+afterEach(() => {
+  jest.useRealTimers()
 })
 
 describe('RootLayout', () => {
@@ -72,6 +77,9 @@ describe('RootLayout', () => {
       })
       render(<RootLayout />)
 
+      // Advance timers to trigger the deferred navigation
+      jest.runAllTimers()
+
       expect(mockReplace).toHaveBeenCalledWith('/onboarding')
     })
 
@@ -95,6 +103,9 @@ describe('RootLayout', () => {
       })
       render(<RootLayout />)
 
+      // Advance timers to trigger the deferred navigation
+      jest.runAllTimers()
+
       // Should be called exactly once, not repeatedly
       expect(mockReplace).toHaveBeenCalledTimes(1)
     })
@@ -107,6 +118,9 @@ describe('RootLayout', () => {
         hasCompletedOnboarding: true,
       })
       render(<RootLayout />)
+
+      // Advance timers to ensure no redirect is triggered
+      jest.runAllTimers()
 
       expect(mockReplace).not.toHaveBeenCalled()
     })
