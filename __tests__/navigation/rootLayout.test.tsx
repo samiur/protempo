@@ -13,7 +13,9 @@ jest.mock('expo-router', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { View } = require('react-native')
   const MockScreen = () => null
-  const MockStack = ({ children }: { children: React.ReactNode }) => <View>{children}</View>
+  const MockStack = ({ children }: { children: React.ReactNode }) => (
+    <View testID="stack-navigator">{children}</View>
+  )
   MockStack.Screen = MockScreen
 
   return {
@@ -72,6 +74,30 @@ describe('RootLayout', () => {
 
       expect(mockReplace).toHaveBeenCalledWith('/onboarding')
     })
+
+    // This test would have caught the infinite loop issue!
+    // The bug was returning <Redirect> instead of Stack, leaving no navigation context
+    it('renders stack navigator even when redirecting to onboarding', () => {
+      useSettingsStore.setState({
+        _hasHydrated: true,
+        hasCompletedOnboarding: false,
+      })
+      render(<RootLayout />)
+
+      // Stack must always be rendered when hydrated - redirect happens via useEffect
+      expect(screen.getByTestId('stack-navigator')).toBeTruthy()
+    })
+
+    it('only redirects once (prevents infinite loops)', () => {
+      useSettingsStore.setState({
+        _hasHydrated: true,
+        hasCompletedOnboarding: false,
+      })
+      render(<RootLayout />)
+
+      // Should be called exactly once, not repeatedly
+      expect(mockReplace).toHaveBeenCalledTimes(1)
+    })
   })
 
   describe('returning user', () => {
@@ -90,8 +116,9 @@ describe('RootLayout', () => {
         _hasHydrated: true,
         hasCompletedOnboarding: true,
       })
+      render(<RootLayout />)
 
-      expect(() => render(<RootLayout />)).not.toThrow()
+      expect(screen.getByTestId('stack-navigator')).toBeTruthy()
     })
   })
 })
