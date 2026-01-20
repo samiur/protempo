@@ -95,3 +95,93 @@ jest.mock('expo-audio', () => {
 })
 
 // Also update the __mocks__/expo-audio mock if tests import it directly
+
+// Mock expo-file-system module globally (SDK 54+ class-based API)
+jest.mock('expo-file-system', () => {
+  // Mock File class
+  class MockFile {
+    constructor(...uris) {
+      // Join URIs to create the file path
+      this._uri = uris
+        .map((u) => {
+          if (u && typeof u === 'object' && u.uri) return u.uri
+          return String(u)
+        })
+        .join('/')
+        .replace(/\/+/g, '/')
+      this._exists = false
+    }
+
+    get uri() {
+      return this._uri
+    }
+
+    get exists() {
+      return this._exists
+    }
+
+    copy(destination) {
+      // Mock copy operation
+    }
+
+    delete() {
+      this._exists = false
+    }
+  }
+
+  // Mock Directory class
+  class MockDirectory {
+    constructor(...uris) {
+      this._uri = uris
+        .map((u) => {
+          if (u && typeof u === 'object' && u.uri) return u.uri
+          return String(u)
+        })
+        .join('/')
+        .replace(/\/+/g, '/')
+      this._exists = false
+    }
+
+    get uri() {
+      return this._uri
+    }
+
+    get exists() {
+      return this._exists
+    }
+
+    create() {
+      this._exists = true
+    }
+
+    delete() {
+      this._exists = false
+    }
+
+    list() {
+      return []
+    }
+  }
+
+  // Mock Paths static class
+  const Paths = {
+    document: { uri: 'file:///mock/documents/' },
+    cache: { uri: 'file:///mock/cache/' },
+    bundle: { uri: 'file:///mock/bundle/' },
+  }
+
+  return {
+    File: MockFile,
+    Directory: MockDirectory,
+    Paths,
+  }
+})
+
+// Mock expo-video-thumbnails module globally
+jest.mock('expo-video-thumbnails', () => ({
+  getThumbnailAsync: jest.fn().mockResolvedValue({
+    uri: 'file:///mock/thumbnail.jpg',
+    width: 320,
+    height: 180,
+  }),
+}))
