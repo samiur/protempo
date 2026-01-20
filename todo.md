@@ -7,8 +7,8 @@
 
 ## Current Status
 
-**Phase:** Phase 7 - Polish (Complete)
-**Current Prompt:** All 15 prompts complete!
+**Phase:** Phase 8 - CI/CD
+**Current Prompt:** Prompt 16 - CI/CD Workflows
 **Blocking Issues:** None
 
 ---
@@ -131,6 +131,15 @@
   - [x] Unit tests passing (592 tests)
   - [x] Detox E2E testing fully configured and passing (30 tests)
 
+### Phase 8: CI/CD
+
+- [ ] **Prompt 16: CI/CD Workflows**
+  - [ ] `.github/workflows/ci.yml` for lint, typecheck, unit tests
+  - [ ] `.github/workflows/e2e.yml` for iOS E2E tests
+  - [ ] Caching for dependencies and builds
+  - [ ] Status badges in README
+  - [ ] CI runs successfully on GitHub
+
 ---
 
 ## Final Verification
@@ -210,4 +219,4 @@
 
 ---
 
-*Last updated: January 19, 2026 (Prompt 15 complete - All prompts done!)*
+*Last updated: January 19, 2026 (Prompt 16 added - CI/CD Workflows)*

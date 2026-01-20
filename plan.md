@@ -8,7 +8,7 @@
 
 ## Overview
 
-This document contains a step-by-step implementation plan for building ProTempo, a cross-platform mobile app that helps golfers improve swing consistency through audio-based tempo training. The plan is broken into 15 iterative prompts, each building on the previous work.
+This document contains a step-by-step implementation plan for building ProTempo, a cross-platform mobile app that helps golfers improve swing consistency through audio-based tempo training. The plan is broken into 16 iterative prompts, each building on the previous work.
 
 ### Architecture Summary
 
@@ -60,7 +60,9 @@ This document contains a step-by-step implementation plan for building ProTempo,
 | State | Zustand |
 | Audio | expo-av |
 | Storage | AsyncStorage |
-| Testing | Jest + React Native Testing Library |
+| Unit Testing | Jest + React Native Testing Library |
+| E2E Testing | Detox |
+| CI/CD | GitHub Actions |
 | Linting | ESLint + Prettier |
 
 ---
@@ -1558,6 +1560,227 @@ Create the onboarding flow for ProTempo. This educates users about tempo trainin
    - Helps user understand what to expect
 
 The onboarding should take <30 seconds to complete. Keep it brief and valuable.
+```
+
+---
+
+### Prompt 16: CI/CD Workflows
+
+**Goal:** Set up GitHub Actions workflows for continuous integration and testing.
+
+**Deliverables:**
+- CI workflow for unit tests, linting, and type checking
+- E2E workflow for Detox tests on iOS simulator
+- Caching for faster builds
+- Status badges for README
+
+```text
+Create GitHub Actions CI/CD workflows for ProTempo to automate testing on every push and PR.
+
+1. **Create `.github/workflows/ci.yml`:**
+
+   This workflow runs on every push and PR. Uses Ubuntu (cheaper) for fast feedback.
+
+   ```yaml
+   name: CI
+
+   on:
+     push:
+       branches: [main]
+     pull_request:
+       branches: [main]
+
+   jobs:
+     test:
+       name: Lint, Typecheck, Test
+       runs-on: ubuntu-latest
+
+       steps:
+         - name: Checkout code
+           uses: actions/checkout@v4
+
+         - name: Setup Node.js
+           uses: actions/setup-node@v4
+           with:
+             node-version: '20'
+             cache: 'npm'
+
+         - name: Install dependencies
+           run: npm ci
+
+         - name: Run ESLint
+           run: npm run lint
+
+         - name: Run TypeScript check
+           run: npm run typecheck
+
+         - name: Run unit tests
+           run: npm test -- --coverage --ci
+
+         - name: Upload coverage
+           uses: codecov/codecov-action@v4
+           if: always()
+           with:
+             files: ./coverage/lcov.info
+             fail_ci_if_error: false
+   ```
+
+2. **Create `.github/workflows/e2e.yml`:**
+
+   E2E tests run on macOS (required for iOS simulator). More expensive, so only run on:
+   - PRs to main
+   - Manual dispatch
+   - Optionally on main branch merges
+
+   ```yaml
+   name: E2E Tests
+
+   on:
+     pull_request:
+       branches: [main]
+     workflow_dispatch:
+
+   jobs:
+     e2e-ios:
+       name: iOS E2E Tests
+       runs-on: macos-14  # Has Apple Silicon, faster
+
+       steps:
+         - name: Checkout code
+           uses: actions/checkout@v4
+
+         - name: Setup Node.js
+           uses: actions/setup-node@v4
+           with:
+             node-version: '20'
+             cache: 'npm'
+
+         - name: Install dependencies
+           run: npm ci
+
+         - name: Install applesimutils
+           run: |
+             brew tap wix/brew
+             brew install applesimutils
+
+         - name: Cache Pods
+           uses: actions/cache@v4
+           with:
+             path: ios/Pods
+             key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
+             restore-keys: |
+               ${{ runner.os }}-pods-
+
+         - name: Cache Detox build
+           uses: actions/cache@v4
+           with:
+             path: ios/build
+             key: ${{ runner.os }}-detox-${{ hashFiles('ios/Podfile.lock', '.detoxrc.js') }}
+             restore-keys: |
+               ${{ runner.os }}-detox-
+
+         - name: Generate native projects
+           run: npx expo prebuild --clean
+
+         - name: Install CocoaPods
+           run: cd ios && pod install
+
+         - name: Build for Detox
+           run: npm run e2e:build:ios
+
+         - name: Boot iOS Simulator
+           run: |
+             xcrun simctl boot "iPhone 16" || true
+             xcrun simctl bootstatus "iPhone 16" -b
+
+         - name: Run E2E tests
+           run: npm run e2e:test:ios
+
+         - name: Upload test artifacts on failure
+           if: failure()
+           uses: actions/upload-artifact@v4
+           with:
+             name: detox-artifacts
+             path: artifacts/
+   ```
+
+3. **Update `.detoxrc.js` for CI:**
+
+   Add CI-specific configuration:
+   ```javascript
+   module.exports = {
+     logger: {
+       level: process.env.CI ? 'debug' : 'info',
+     },
+     // ... rest of config
+     artifacts: {
+       rootDir: 'artifacts',
+       plugins: {
+         screenshot: process.env.CI ? 'failing' : 'none',
+         video: process.env.CI ? 'failing' : 'none',
+       },
+     },
+   }
+   ```
+
+4. **Add status badges to README.md:**
+
+   Create or update README.md with:
+   ```markdown
+   # ProTempo
+
+   [![CI](https://github.com/YOUR_USERNAME/protempo/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/protempo/actions/workflows/ci.yml)
+   [![E2E](https://github.com/YOUR_USERNAME/protempo/actions/workflows/e2e.yml/badge.svg)](https://github.com/YOUR_USERNAME/protempo/actions/workflows/e2e.yml)
+
+   A golf tempo trainer app built with React Native and Expo.
+   ```
+
+5. **Optimize for speed:**
+
+   a. **Dependency caching:**
+      - npm cache is handled by `actions/setup-node`
+      - Add Pods caching for iOS
+      - Add Detox build caching
+
+   b. **Parallel jobs (optional):**
+      - Run lint, typecheck, and test in parallel for CI
+      - Split into separate jobs if needed
+
+   c. **Skip E2E when not needed:**
+      - Add path filters to skip E2E on docs-only changes:
+      ```yaml
+      on:
+        pull_request:
+          branches: [main]
+          paths-ignore:
+            - '**.md'
+            - 'docs/**'
+      ```
+
+6. **Write verification tests:**
+
+   Create `__tests__/ci/workflow.test.ts` (optional):
+   - Verify workflow files are valid YAML
+   - Verify required npm scripts exist
+   - This helps catch CI config issues early
+
+7. **Manual verification:**
+
+   - [ ] Push to a branch, verify CI runs
+   - [ ] Open PR to main, verify both CI and E2E run
+   - [ ] Verify caching works (second run should be faster)
+   - [ ] Intentionally break a test, verify CI fails
+   - [ ] Verify artifacts upload on E2E failure
+
+8. **Documentation:**
+
+   Update CLAUDE.md with CI section:
+   - How to check CI status
+   - How to manually trigger E2E
+   - How to debug CI failures
+   - Expected CI times
+
+CI workflows ensure code quality is maintained. Unit tests should complete in <2 minutes, E2E in <10 minutes.
 ```
 
 ---
