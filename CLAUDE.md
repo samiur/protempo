@@ -167,6 +167,7 @@ The app supports background audio playback and screen wake lock:
   - `shouldPlayInBackground: true` - continues when app is backgrounded
   - `interruptionMode: 'doNotMix'` - handles audio interruptions from calls/other apps
 - `app.json` includes iOS `UIBackgroundModes: ["audio"]` and Android `FOREGROUND_SERVICE` permission
+- **Silent loop technique**: iOS suspends apps when no audio is actively playing. Since tempo tones have gaps between them, a silent audio file (`silence.wav`) loops continuously during playback to keep the audio session alive. Call `activateSession()` when starting playback and `deactivateSession()` when stopping.
 
 **Screen Wake Lock:**
 - `hooks/useKeepAwake.ts` manages screen dimming prevention

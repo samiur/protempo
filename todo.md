@@ -121,7 +121,7 @@
   - [x] expo-keep-awake integrated
   - [x] App state handling working
   - [x] Interruption handling working
-  - [ ] Device testing done (background, lock screen)
+  - [x] Device testing done (background, lock screen)
 
 - [ ] **Prompt 15: Onboarding Flow**
   - [ ] `app/onboarding.tsx` complete
