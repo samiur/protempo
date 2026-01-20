@@ -185,3 +185,38 @@ jest.mock('expo-video-thumbnails', () => ({
     height: 180,
   }),
 }))
+
+// Mock expo-camera module globally
+jest.mock('expo-camera', () => {
+  const React = require('react')
+
+  // Mock CameraView component
+  const MockCameraView = React.forwardRef((props, ref) => {
+    const { View } = require('react-native')
+
+    // Expose recording methods via ref
+    React.useImperativeHandle(ref, () => ({
+      recordAsync: jest.fn().mockResolvedValue({
+        uri: 'file:///mock/video.mp4',
+      }),
+      stopRecording: jest.fn(),
+    }))
+
+    return React.createElement(View, {
+      testID: props.testID || 'camera-view',
+      ...props,
+    })
+  })
+
+  return {
+    CameraView: MockCameraView,
+    useCameraPermissions: jest.fn(() => [
+      { granted: true, canAskAgain: true },
+      jest.fn().mockResolvedValue({ granted: true }),
+    ]),
+    useMicrophonePermissions: jest.fn(() => [
+      { granted: true, canAskAgain: true },
+      jest.fn().mockResolvedValue({ granted: true }),
+    ]),
+  }
+})
