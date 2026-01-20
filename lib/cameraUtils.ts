@@ -1,7 +1,5 @@
 // ABOUTME: Utility functions for camera and video capture operations.
-// ABOUTME: Provides video quality selection and time formatting helpers.
-
-import { MIN_FPS, TARGET_FPS } from '../constants/videoSettings'
+// ABOUTME: Provides camera capability detection and time formatting helpers.
 
 /**
  * Camera capabilities detected from the device.
@@ -13,36 +11,6 @@ export interface CameraCapabilities {
   supportsSlowMotion: boolean
   /** Supported aspect ratios (e.g., '16:9', '4:3') */
   supportedRatios: string[]
-}
-
-/**
- * Video quality preset options.
- */
-export type VideoQuality = '2160p' | '1080p' | '720p' | '480p'
-
-/**
- * Selects the best video quality based on camera capabilities.
- *
- * Higher FPS capabilities allow for higher quality recording because:
- * - 240fps cameras (slow-motion) can record at 4K
- * - 60-120fps cameras work best at 1080p
- * - Lower FPS cameras should use 720p to maintain performance
- *
- * @param capabilities - The detected camera capabilities
- * @returns The recommended video quality preset
- */
-export function getBestVideoQuality(capabilities: CameraCapabilities): VideoQuality {
-  const { maxFps } = capabilities
-
-  if (maxFps >= TARGET_FPS) {
-    return '2160p'
-  }
-
-  if (maxFps >= MIN_FPS) {
-    return '1080p'
-  }
-
-  return '720p'
 }
 
 /**
