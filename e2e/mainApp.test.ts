@@ -38,6 +38,12 @@ describe('Main App', () => {
       await expect(element(by.text('2:1 Tempo Training'))).toBeVisible()
     })
 
+    it('can navigate to Video tab', async () => {
+      await element(by.text('Video')).atIndex(0).tap()
+      await new Promise((resolve) => setTimeout(resolve, 500))
+      await expect(element(by.text('Video Analysis'))).toBeVisible()
+    })
+
     it('can navigate to Settings tab', async () => {
       await element(by.text('Settings')).atIndex(0).tap()
       await new Promise((resolve) => setTimeout(resolve, 500))
@@ -94,6 +100,25 @@ describe('Main App', () => {
     it('shows 2:1 ratio presets', async () => {
       await expect(element(by.text('18/9'))).toBeVisible()
       await expect(element(by.text('16/8'))).toBeVisible()
+    })
+  })
+
+  describe('Video Screen', () => {
+    beforeAll(async () => {
+      await element(by.text('Video')).atIndex(0).tap()
+      await new Promise((resolve) => setTimeout(resolve, 500))
+    })
+
+    it('shows video analysis title', async () => {
+      await expect(element(by.text('Video Analysis'))).toBeVisible()
+    })
+
+    it('shows Record New option', async () => {
+      await expect(element(by.text('Record New'))).toBeVisible()
+    })
+
+    it('shows Video Library option', async () => {
+      await expect(element(by.text('Video Library'))).toBeVisible()
     })
   })
 
