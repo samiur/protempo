@@ -59,7 +59,7 @@ jobs:
             ${{ runner.os }}-detox-build-
 
       - name: Generate native projects
-        run: npx expo prebuild --clean
+        run: npx expo prebuild
 
       - name: Install CocoaPods
         run: |

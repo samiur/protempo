@@ -1,7 +1,7 @@
 // ABOUTME: E2E tests for the onboarding flow.
 // ABOUTME: Verifies first-launch experience, navigation, and completion.
 
-import { by, device, element, expect } from 'detox'
+import { by, device, element, expect, waitFor } from 'detox'
 
 describe('Onboarding Flow', () => {
   describe('First Launch', () => {
@@ -9,7 +9,10 @@ describe('Onboarding Flow', () => {
       // Uninstall and reinstall to simulate first launch
       await device.launchApp({ newInstance: true, delete: true })
       await device.disableSynchronization()
-      await new Promise((resolve) => setTimeout(resolve, 3000))
+      // Wait for app to settle and onboarding to appear
+      await waitFor(element(by.id('onboarding-screen')))
+        .toBeVisible()
+        .withTimeout(5000)
     })
 
     afterEach(async () => {
@@ -39,7 +42,9 @@ describe('Onboarding Flow', () => {
     beforeAll(async () => {
       await device.launchApp({ newInstance: true, delete: true })
       await device.disableSynchronization()
-      await new Promise((resolve) => setTimeout(resolve, 3000))
+      await waitFor(element(by.id('onboarding-screen')))
+        .toBeVisible()
+        .withTimeout(5000)
     })
 
     afterAll(async () => {
@@ -48,8 +53,9 @@ describe('Onboarding Flow', () => {
 
     it('navigates to page 2 when Next is pressed', async () => {
       await element(by.text('Next')).tap()
-      await new Promise((resolve) => setTimeout(resolve, 500))
-      await expect(element(by.text('Three Simple Tones'))).toBeVisible()
+      await waitFor(element(by.text('Three Simple Tones')))
+        .toBeVisible()
+        .withTimeout(2000)
     })
 
     it('shows Back button on page 2', async () => {
@@ -58,16 +64,20 @@ describe('Onboarding Flow', () => {
 
     it('navigates back to page 1 when Back is pressed', async () => {
       await element(by.text('Back')).tap()
-      await new Promise((resolve) => setTimeout(resolve, 500))
-      await expect(element(by.text('What is Golf Tempo?'))).toBeVisible()
+      await waitFor(element(by.text('What is Golf Tempo?')))
+        .toBeVisible()
+        .withTimeout(2000)
     })
 
     it('navigates to page 3 from page 2', async () => {
       await element(by.text('Next')).tap()
-      await new Promise((resolve) => setTimeout(resolve, 500))
+      await waitFor(element(by.text('Three Simple Tones')))
+        .toBeVisible()
+        .withTimeout(2000)
       await element(by.text('Next')).tap()
-      await new Promise((resolve) => setTimeout(resolve, 500))
-      await expect(element(by.text('Start with 24/8'))).toBeVisible()
+      await waitFor(element(by.text('Start with 24/8')))
+        .toBeVisible()
+        .withTimeout(2000)
     })
 
     it('shows Get Started button on page 3', async () => {
@@ -83,30 +93,40 @@ describe('Onboarding Flow', () => {
     it('completes onboarding and shows main app when Get Started is pressed', async () => {
       await device.launchApp({ newInstance: true, delete: true })
       await device.disableSynchronization()
-      await new Promise((resolve) => setTimeout(resolve, 3000))
+      await waitFor(element(by.id('onboarding-screen')))
+        .toBeVisible()
+        .withTimeout(5000)
 
       // Navigate through all pages
       await element(by.text('Next')).tap()
-      await new Promise((resolve) => setTimeout(resolve, 500))
+      await waitFor(element(by.text('Three Simple Tones')))
+        .toBeVisible()
+        .withTimeout(2000)
       await element(by.text('Next')).tap()
-      await new Promise((resolve) => setTimeout(resolve, 500))
+      await waitFor(element(by.text('Get Started')))
+        .toBeVisible()
+        .withTimeout(2000)
       await element(by.text('Get Started')).tap()
-      await new Promise((resolve) => setTimeout(resolve, 1000))
 
       // Should now be on the main app (Long Game screen)
-      await expect(element(by.text('Long Game')).atIndex(0)).toBeVisible()
+      await waitFor(element(by.text('Long Game')).atIndex(0))
+        .toBeVisible()
+        .withTimeout(3000)
     })
 
     it('completes onboarding when Skip is pressed', async () => {
       await device.launchApp({ newInstance: true, delete: true })
       await device.disableSynchronization()
-      await new Promise((resolve) => setTimeout(resolve, 3000))
+      await waitFor(element(by.id('onboarding-screen')))
+        .toBeVisible()
+        .withTimeout(5000)
 
       await element(by.text('Skip')).tap()
-      await new Promise((resolve) => setTimeout(resolve, 1000))
 
       // Should now be on the main app
-      await expect(element(by.text('Long Game')).atIndex(0)).toBeVisible()
+      await waitFor(element(by.text('Long Game')).atIndex(0))
+        .toBeVisible()
+        .withTimeout(3000)
     })
   })
 
@@ -119,18 +139,21 @@ describe('Onboarding Flow', () => {
       // First launch - complete onboarding
       await device.launchApp({ newInstance: true, delete: true })
       await device.disableSynchronization()
-      await new Promise((resolve) => setTimeout(resolve, 3000))
+      await waitFor(element(by.id('onboarding-screen')))
+        .toBeVisible()
+        .withTimeout(5000)
 
       await element(by.text('Skip')).tap()
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      await expect(element(by.text('Long Game')).atIndex(0)).toBeVisible()
+      await waitFor(element(by.text('Long Game')).atIndex(0))
+        .toBeVisible()
+        .withTimeout(3000)
 
       // Relaunch the app (without delete)
       await device.launchApp({ newInstance: true })
-      await new Promise((resolve) => setTimeout(resolve, 3000))
-
       // Should go straight to main app, not onboarding
-      await expect(element(by.text('Long Game')).atIndex(0)).toBeVisible()
+      await waitFor(element(by.text('Long Game')).atIndex(0))
+        .toBeVisible()
+        .withTimeout(5000)
     })
   })
 })
