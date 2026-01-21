@@ -75,6 +75,11 @@ ProTempo is a cross-platform mobile app that helps golfers improve swing consist
 - `constants/videoSettings.ts` - Video recording limits, FPS targets, and storage paths
 - `hooks/useVideoCapture.ts` - React hook for camera permissions, recording lifecycle, and duration tracking (react-native-vision-camera)
 - `lib/cameraUtils.ts` - Camera utility functions including `formatRecordingTime` and `CameraCapabilities` interface
+- `app/(tabs)/video.tsx` - Video tab entry point with "Record New" and "Video Library" options
+- `app/capture.tsx` - Full-screen camera recording screen with VisionCamera integration
+- `components/video/CameraPreview.tsx` - Camera preview component with optional grid overlay
+- `components/video/RecordButton.tsx` - Large circular record button with recording state indicators
+- `components/video/RecordingOverlay.tsx` - Recording indicator, timer display, and FPS badge overlay
 
 ## Development Commands
 
