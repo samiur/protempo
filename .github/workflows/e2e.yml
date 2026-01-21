@@ -40,28 +40,21 @@ jobs:
           ruby-version: '3.2'
           bundler-cache: true
 
-      - name: Cache CocoaPods
+      - name: Cache native projects
+        id: native-cache
         uses: actions/cache@v4
         with:
           path: |
-            ios/Pods
+            ios
             ~/Library/Caches/CocoaPods
-          key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-pods-
-
-      - name: Cache Detox build
-        uses: actions/cache@v4
-        with:
-          path: ios/build
-          key: ${{ runner.os }}-detox-build-${{ hashFiles('ios/Podfile.lock', '.detoxrc.js', 'package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-detox-build-
+          key: ${{ runner.os }}-ios-${{ hashFiles('app.json', 'package.json', 'package-lock.json', '.detoxrc.js') }}
 
       - name: Generate native projects
+        if: steps.native-cache.outputs.cache-hit != 'true'
         run: npx expo prebuild
 
       - name: Install CocoaPods
+        if: steps.native-cache.outputs.cache-hit != 'true'
         run: |
           cd ios
           pod install --repo-update
@@ -70,6 +63,7 @@ jobs:
         run: xcrun simctl list devices available
 
       - name: Build for Detox
+        if: steps.native-cache.outputs.cache-hit != 'true'
         run: npm run e2e:build:ios
 
       - name: Boot iOS Simulator
