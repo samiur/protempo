@@ -148,9 +148,7 @@ describe('poseAnalyzer', () => {
     })
 
     it('should return null for empty range', () => {
-      const analysis: MotionAnalysisResult[] = [
-        { frameIndex: 0, timeMs: 0, motionScore: 0.5 },
-      ]
+      const analysis: MotionAnalysisResult[] = [{ frameIndex: 0, timeMs: 0, motionScore: 0.5 }]
 
       expect(findMotionPeak(analysis, 5, 10)).toBeNull()
     })
@@ -186,9 +184,7 @@ describe('poseAnalyzer', () => {
     })
 
     it('should return null if startIndex is out of bounds', () => {
-      const analysis: MotionAnalysisResult[] = [
-        { frameIndex: 0, timeMs: 0, motionScore: 0.5 },
-      ]
+      const analysis: MotionAnalysisResult[] = [{ frameIndex: 0, timeMs: 0, motionScore: 0.5 }]
 
       expect(findMotionEnd(analysis, 5, 0.1)).toBeNull()
     })

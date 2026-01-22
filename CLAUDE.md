@@ -88,6 +88,10 @@ ProTempo is a cross-platform mobile app that helps golfers improve swing consist
 - `lib/swingDetector.ts` - Factory function to create swing detector instances (currently returns mock implementation)
 - `lib/mockSwingDetector.ts` - Mock swing detector that simulates ML detection with realistic timing
 - `lib/swingAnalysisUtils.ts` - Pure utility functions for ratio calculation, tempo comparison, and preset matching
+- `app/analysis/[id].tsx` - Video analysis screen with detected tempo display and manual adjustment
+- `components/video/AnalysisResults.tsx` - Displays detected frames, timing, ratio, and confidence
+- `components/video/FrameAdjuster.tsx` - Manual frame adjustment with increment/decrement controls
+- `components/video/TempoComparison.tsx` - Visual comparison between detected and target tempo
 
 ## Development Commands
 
@@ -533,3 +537,55 @@ The current ML implementation uses heuristic-based motion analysis. Future versi
 - TensorFlow Lite with MoveNet pose detection models
 - MediaPipe for real-time pose estimation
 - Custom golf swing-specific ML models
+
+### Video Analysis Screen (V2 Feature)
+
+The analysis screen (`app/analysis/[id].tsx`) displays detected swing tempo and allows manual adjustment of frame markers.
+
+**Screen States:**
+- `loading` - Loading video from storage
+- `not-found` - Video ID not found
+- `needs-analysis` - Video loaded but no analysis yet
+- `ready` - Analysis complete, showing results
+
+**Components:**
+
+`AnalysisResults` (`components/video/AnalysisResults.tsx`):
+- Displays detected frame positions (takeaway, top, impact) with colored dots
+- Shows backswing/downswing timing in frames and seconds
+- Displays calculated ratio (e.g., "3.0:1") and confidence percentage
+- Compares detected ratio to user's target preset
+
+`FrameAdjuster` (`components/video/FrameAdjuster.tsx`):
+- Manual adjustment of swing frame markers
+- Increment/decrement buttons for takeaway, top, impact frames
+- Validates frame ordering: takeaway < top < impact
+- Live ratio display updates as frames change
+- "Auto Detect" button to re-run ML detection
+- Sets `manuallyAdjusted: true` when user changes frames
+
+`TempoComparison` (`components/video/TempoComparison.tsx`):
+- Visual comparison of detected vs target tempo
+- Shows detected ratio and target ratio side-by-side
+- Comparison indicator: checkmark (similar), arrow-up (faster), arrow-down (slower)
+- Percentage difference display
+- Feedback message from `getTempoFeedback()`
+- Recommended preset based on detected ratio
+
+**Frame Marker Colors:**
+- Takeaway: `#4CAF50` (green)
+- Top: `#FFC107` (yellow)
+- Impact: `#F44336` (red)
+
+**Screen Flow:**
+1. Screen loads video by ID from `videoStorage`
+2. If no analysis exists, shows "Analyze Swing" button
+3. User clicks button → runs ML detection via `createSwingDetector()`
+4. Results displayed with VideoPlayer (markers), AnalysisResults, FrameAdjuster, TempoComparison
+5. User can manually adjust frames via FrameAdjuster
+6. "Save Changes" button persists via `videoStorage.updateVideoAnalysis()`
+
+**Navigation:**
+- Accessed via `/analysis/[id]` route
+- Back button returns to previous screen
+- Video ID passed as route parameter

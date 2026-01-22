@@ -70,16 +70,12 @@ export function analyzeMotion(
  * console.log(`Peak motion at frame ${peak.frameIndex}`)
  * ```
  */
-export function detectPeakMotion(
-  analysis: MotionAnalysisResult[]
-): MotionAnalysisResult | null {
+export function detectPeakMotion(analysis: MotionAnalysisResult[]): MotionAnalysisResult | null {
   if (analysis.length === 0) {
     return null
   }
 
-  return analysis.reduce((max, current) =>
-    current.motionScore > max.motionScore ? current : max
-  )
+  return analysis.reduce((max, current) => (current.motionScore > max.motionScore ? current : max))
 }
 
 /**

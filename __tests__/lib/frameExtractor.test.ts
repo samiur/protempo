@@ -1,11 +1,7 @@
 // ABOUTME: Tests for frame extraction utilities used in swing analysis.
 // ABOUTME: Validates frame extraction from videos at various time points.
 
-import {
-  extractFrames,
-  extractFrameAt,
-  getFrameCount,
-} from '../../lib/frameExtractor'
+import { extractFrames, extractFrameAt, getFrameCount } from '../../lib/frameExtractor'
 import * as VideoThumbnails from 'expo-video-thumbnails'
 
 // Get the mocked module
@@ -26,10 +22,10 @@ describe('frameExtractor', () => {
 
       const result = await extractFrameAt('file:///mock/video.mp4', 500)
 
-      expect(mockedThumbnails.getThumbnailAsync).toHaveBeenCalledWith(
-        'file:///mock/video.mp4',
-        { time: 500, quality: 0.8 }
-      )
+      expect(mockedThumbnails.getThumbnailAsync).toHaveBeenCalledWith('file:///mock/video.mp4', {
+        time: 500,
+        quality: 0.8,
+      })
       expect(result).toEqual({
         uri: 'file:///mock/frame_500.jpg',
         timeMs: 500,
@@ -47,20 +43,18 @@ describe('frameExtractor', () => {
 
       await extractFrameAt('file:///mock/video.mp4', 1000, { quality: 0.5 })
 
-      expect(mockedThumbnails.getThumbnailAsync).toHaveBeenCalledWith(
-        'file:///mock/video.mp4',
-        { time: 1000, quality: 0.5 }
-      )
+      expect(mockedThumbnails.getThumbnailAsync).toHaveBeenCalledWith('file:///mock/video.mp4', {
+        time: 1000,
+        quality: 0.5,
+      })
     })
 
     it('should throw error if extraction fails', async () => {
-      mockedThumbnails.getThumbnailAsync.mockRejectedValueOnce(
-        new Error('Extraction failed')
-      )
+      mockedThumbnails.getThumbnailAsync.mockRejectedValueOnce(new Error('Extraction failed'))
 
-      await expect(
-        extractFrameAt('file:///mock/invalid.mp4', 0)
-      ).rejects.toThrow('Failed to extract frame at 0ms: Extraction failed')
+      await expect(extractFrameAt('file:///mock/invalid.mp4', 0)).rejects.toThrow(
+        'Failed to extract frame at 0ms: Extraction failed'
+      )
     })
   })
 
@@ -102,15 +96,15 @@ describe('frameExtractor', () => {
     })
 
     it('should throw error if count is less than 1', async () => {
-      await expect(
-        extractFrames('file:///mock/video.mp4', 0, 5000)
-      ).rejects.toThrow('Frame count must be at least 1')
+      await expect(extractFrames('file:///mock/video.mp4', 0, 5000)).rejects.toThrow(
+        'Frame count must be at least 1'
+      )
     })
 
     it('should throw error if duration is invalid', async () => {
-      await expect(
-        extractFrames('file:///mock/video.mp4', 5, -1)
-      ).rejects.toThrow('Duration must be positive')
+      await expect(extractFrames('file:///mock/video.mp4', 5, -1)).rejects.toThrow(
+        'Duration must be positive'
+      )
     })
 
     it('should continue extracting even if some frames fail', async () => {

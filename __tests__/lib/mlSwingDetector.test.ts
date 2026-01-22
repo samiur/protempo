@@ -77,9 +77,9 @@ describe('mlSwingDetector', () => {
     it('should throw error if not initialized', async () => {
       const detector = createMLSwingDetector()
 
-      await expect(
-        detector.detectSwingPhases('file:///mock/video.mp4', 60)
-      ).rejects.toThrow('Detector not initialized')
+      await expect(detector.detectSwingPhases('file:///mock/video.mp4', 60)).rejects.toThrow(
+        'Detector not initialized'
+      )
     })
 
     it('should detect swing phases and return valid result', async () => {
@@ -167,10 +167,7 @@ describe('mlSwingDetector', () => {
       const detector = createMLSwingDetector()
       await detector.initialize()
 
-      const result = await detector.detectSwingPhases(
-        'file:///mock/video.mp4',
-        60
-      )
+      const result = await detector.detectSwingPhases('file:///mock/video.mp4', 60)
 
       // Should complete without error
       expect(result).toBeDefined()
