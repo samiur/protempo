@@ -1,4 +1,7 @@
-import { createSwingDetector } from '../../lib/swingDetector'
+// ABOUTME: Tests for swing detector factory function.
+// ABOUTME: Validates detector creation, initialization, and detection behavior.
+
+import { createSwingDetector, isMLDetectionAvailable } from '../../lib/swingDetector'
 import type { SwingDetector } from '../../types/swingDetection'
 
 describe('Swing Detector', () => {
@@ -108,6 +111,32 @@ describe('Swing Detector', () => {
 
       await expect(detector.initialize()).resolves.not.toThrow()
       expect(detector.isReady()).toBe(true)
+    })
+  })
+
+  describe('isMLDetectionAvailable', () => {
+    it('should return a boolean', () => {
+      const result = isMLDetectionAvailable()
+      expect(typeof result).toBe('boolean')
+    })
+  })
+
+  describe('detector type selection', () => {
+    it('should allow creating ML detector explicitly', () => {
+      const mlDetector = createSwingDetector({ type: 'ml' })
+      expect(mlDetector).toBeDefined()
+      expect(typeof mlDetector.detectSwingPhases).toBe('function')
+    })
+
+    it('should allow creating mock detector explicitly', () => {
+      const mockDetector = createSwingDetector({ type: 'mock' })
+      expect(mockDetector).toBeDefined()
+      expect(typeof mockDetector.detectSwingPhases).toBe('function')
+    })
+
+    it('should use auto selection by default', () => {
+      const autoDetector = createSwingDetector()
+      expect(autoDetector).toBeDefined()
     })
   })
 })

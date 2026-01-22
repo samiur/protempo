@@ -444,9 +444,9 @@ interface FrameMarker {
 - `useVideoPlayer` returns mock instance with event subscription support
 - `VideoView` component mock for render tests
 
-### Swing Detection (V2 Feature - In Progress)
+### Swing Detection (V2 Feature)
 
-The swing detection system provides an interface for detecting swing phases (takeaway, top, impact) from recorded videos.
+The swing detection system detects swing phases (takeaway, top, impact) from recorded videos using motion analysis.
 
 **Type Definitions (`types/swingDetection.ts`):**
 - `SwingDetectionResult` - Raw result from detection (frame numbers, confidence, processing time)
@@ -467,16 +467,40 @@ interface SwingDetector {
 ```
 
 **Factory Function (`lib/swingDetector.ts`):**
-- `createSwingDetector()` - Creates a detector instance (currently returns mock)
-- `isMLDetectionAvailable()` - Checks if ML detection is available (for future use)
+- `createSwingDetector(options?)` - Creates a detector instance
+  - `{ type: 'auto' }` - Auto-select best available (default)
+  - `{ type: 'ml' }` - Force ML-based detector
+  - `{ type: 'mock' }` - Force mock detector (for testing)
+- `isMLDetectionAvailable()` - Checks if ML detection is available
+
+**ML Implementation (`lib/mlSwingDetector.ts`):**
+- Uses motion analysis on extracted video frames
+- Extracts frames using expo-video-thumbnails
+- Analyzes motion patterns to detect swing phases:
+  - **Takeaway**: First significant motion (club starts moving)
+  - **Top**: Pause/direction change at top of backswing
+  - **Impact**: Peak motion during downswing
+- Falls back to mock if frame extraction fails
+
+**Frame Extraction (`lib/frameExtractor.ts`):**
+- `extractFrameAt(videoUri, timeMs, options?)` - Extract single frame at time
+- `extractFrames(videoUri, count, durationMs, options?)` - Extract multiple evenly distributed frames
+- `getFrameCount(durationMs, fps)` - Calculate total frames
+- `frameToTime(frameNumber, fps)` / `timeToFrame(timeMs, fps)` - Convert between frames and time
+
+**Motion Analysis (`lib/poseAnalyzer.ts`):**
+- `analyzeMotion(frames, motionScores)` - Combine frames with motion scores
+- `detectPeakMotion(analysis)` - Find frame with highest motion
+- `findMotionStart(analysis, threshold?)` - Find first significant motion
+- `findMotionPeak(analysis, startIndex, endIndex)` - Find peak in range
+- `findMotionEnd(analysis, startIndex, threshold?)` - Find motion drop-off
+- `detectSwingPhases(analysis, options?)` - Detect all three swing phases
 
 **Mock Implementation (`lib/mockSwingDetector.ts`):**
-- `createMockSwingDetector()` - Creates a mock detector for development
+- `createMockSwingDetector()` - Creates a mock detector for development/testing
 - Simulates ML detection with realistic timing delays
 - Generates frame positions at ~10% (takeaway), ~60% (top), ~80% (impact) of video
-- Adds ±10% jitter for natural variation
 - Returns confidence scores between 0.7-0.95
-- Ensures frames are always in correct chronological order
 
 **Utility Functions (`lib/swingAnalysisUtils.ts`):**
 - `calculateRatioFromFrames(takeaway, top, impact)` - Calculate backswing/downswing ratio
@@ -486,6 +510,7 @@ interface SwingDetector {
 
 **Usage Example:**
 ```typescript
+// Auto-select best available detector
 const detector = createSwingDetector()
 await detector.initialize()
 
@@ -498,8 +523,13 @@ const ratio = calculateRatioFromFrames(
 
 const preset = findClosestPreset(ratio, 'long')
 console.log(`Recommended tempo: ${preset.label}`) // "24/8"
+console.log(`Confidence: ${result.confidence}`)
 
 detector.dispose()
 ```
 
-**Note:** The mock implementation is used for development. Prompt 29 will add ML-based detection.
+**Future Enhancements:**
+The current ML implementation uses heuristic-based motion analysis. Future versions could integrate:
+- TensorFlow Lite with MoveNet pose detection models
+- MediaPipe for real-time pose estimation
+- Custom golf swing-specific ML models
