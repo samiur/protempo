@@ -84,6 +84,10 @@ ProTempo is a cross-platform mobile app that helps golfers improve swing consist
 - `components/video/VideoPlayer.tsx` - Composable video player with play/pause, scrubber, and frame controls
 - `components/video/VideoScrubber.tsx` - Slider with colored frame markers for swing phase visualization
 - `components/video/FrameControls.tsx` - Frame-by-frame navigation buttons and playback speed selector
+- `types/swingDetection.ts` - Type definitions for swing detection ML interface (SwingDetector, SwingDetectionResult, FrameAnalysis, TempoComparison)
+- `lib/swingDetector.ts` - Factory function to create swing detector instances (currently returns mock implementation)
+- `lib/mockSwingDetector.ts` - Mock swing detector that simulates ML detection with realistic timing
+- `lib/swingAnalysisUtils.ts` - Pure utility functions for ratio calculation, tempo comparison, and preset matching
 
 ## Development Commands
 
@@ -439,3 +443,63 @@ interface FrameMarker {
 - MockVideoPlayer class with all player methods and properties
 - `useVideoPlayer` returns mock instance with event subscription support
 - `VideoView` component mock for render tests
+
+### Swing Detection (V2 Feature - In Progress)
+
+The swing detection system provides an interface for detecting swing phases (takeaway, top, impact) from recorded videos.
+
+**Type Definitions (`types/swingDetection.ts`):**
+- `SwingDetectionResult` - Raw result from detection (frame numbers, confidence, processing time)
+- `SwingDetector` - Interface for swing detection implementations (mock or ML)
+- `FrameAnalysis` - Analysis result for a single video frame
+- `FramePosition` - Normalized x/y coordinates (0-1 range)
+- `BodyPose` - Detected body keypoints (shoulders, hips, wrists)
+- `TempoComparison` - Result of comparing detected tempo to a target preset
+
+**SwingDetector Interface:**
+```typescript
+interface SwingDetector {
+  isReady(): boolean
+  initialize(): Promise<void>
+  detectSwingPhases(videoUri: string, fps: number): Promise<SwingDetectionResult>
+  dispose(): void
+}
+```
+
+**Factory Function (`lib/swingDetector.ts`):**
+- `createSwingDetector()` - Creates a detector instance (currently returns mock)
+- `isMLDetectionAvailable()` - Checks if ML detection is available (for future use)
+
+**Mock Implementation (`lib/mockSwingDetector.ts`):**
+- `createMockSwingDetector()` - Creates a mock detector for development
+- Simulates ML detection with realistic timing delays
+- Generates frame positions at ~10% (takeaway), ~60% (top), ~80% (impact) of video
+- Adds ±10% jitter for natural variation
+- Returns confidence scores between 0.7-0.95
+- Ensures frames are always in correct chronological order
+
+**Utility Functions (`lib/swingAnalysisUtils.ts`):**
+- `calculateRatioFromFrames(takeaway, top, impact)` - Calculate backswing/downswing ratio
+- `compareToTargetTempo(analysis, preset)` - Compare detected tempo to target preset
+- `getTempoFeedback(comparison)` - Generate human-readable feedback string
+- `findClosestPreset(ratio, mode)` - Find the closest preset for a detected ratio
+
+**Usage Example:**
+```typescript
+const detector = createSwingDetector()
+await detector.initialize()
+
+const result = await detector.detectSwingPhases(videoUri, fps)
+const ratio = calculateRatioFromFrames(
+  result.takeawayFrame,
+  result.topFrame,
+  result.impactFrame
+)
+
+const preset = findClosestPreset(ratio, 'long')
+console.log(`Recommended tempo: ${preset.label}`) // "24/8"
+
+detector.dispose()
+```
+
+**Note:** The mock implementation is used for development. Prompt 29 will add ML-based detection.
