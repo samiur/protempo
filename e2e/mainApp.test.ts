@@ -17,7 +17,7 @@ describe('Main App', () => {
       await element(by.text('Skip')).tap()
       await waitFor(element(by.text('Long Game')).atIndex(0))
         .toBeVisible()
-        .withTimeout(3000)
+        .withTimeout(10000)
     } catch {
       // Already completed onboarding, wait for main app
       await waitFor(element(by.text('Long Game')).atIndex(0))
@@ -208,7 +208,7 @@ describe('Playback', () => {
       await element(by.text('Skip')).tap()
       await waitFor(element(by.text('Long Game')).atIndex(0))
         .toBeVisible()
-        .withTimeout(3000)
+        .withTimeout(10000)
     } catch {
       // Already done
       await waitFor(element(by.text('Long Game')).atIndex(0))

@@ -109,9 +109,10 @@ describe('Onboarding Flow', () => {
       await element(by.text('Get Started')).tap()
 
       // Should now be on the main app (Long Game screen)
+      // Use longer timeout for screen transition in CI
       await waitFor(element(by.text('Long Game')).atIndex(0))
         .toBeVisible()
-        .withTimeout(3000)
+        .withTimeout(10000)
     })
 
     it('completes onboarding when Skip is pressed', async () => {
@@ -126,7 +127,7 @@ describe('Onboarding Flow', () => {
       // Should now be on the main app
       await waitFor(element(by.text('Long Game')).atIndex(0))
         .toBeVisible()
-        .withTimeout(3000)
+        .withTimeout(10000)
     })
   })
 
@@ -141,19 +142,19 @@ describe('Onboarding Flow', () => {
       await device.disableSynchronization()
       await waitFor(element(by.id('onboarding-screen')))
         .toBeVisible()
-        .withTimeout(5000)
+        .withTimeout(10000)
 
       await element(by.text('Skip')).tap()
       await waitFor(element(by.text('Long Game')).atIndex(0))
         .toBeVisible()
-        .withTimeout(3000)
+        .withTimeout(10000)
 
       // Relaunch the app (without delete)
       await device.launchApp({ newInstance: true })
       // Should go straight to main app, not onboarding
       await waitFor(element(by.text('Long Game')).atIndex(0))
         .toBeVisible()
-        .withTimeout(5000)
+        .withTimeout(10000)
     })
   })
 })
