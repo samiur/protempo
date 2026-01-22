@@ -84,6 +84,14 @@ ProTempo is a cross-platform mobile app that helps golfers improve swing consist
 - `components/video/VideoPlayer.tsx` - Composable video player with play/pause, scrubber, and frame controls
 - `components/video/VideoScrubber.tsx` - Slider with colored frame markers for swing phase visualization
 - `components/video/FrameControls.tsx` - Frame-by-frame navigation buttons and playback speed selector
+- `types/swingDetection.ts` - Type definitions for swing detection ML interface (SwingDetector, SwingDetectionResult, FrameAnalysis, TempoComparison)
+- `lib/swingDetector.ts` - Factory function to create swing detector instances (currently returns mock implementation)
+- `lib/mockSwingDetector.ts` - Mock swing detector that simulates ML detection with realistic timing
+- `lib/swingAnalysisUtils.ts` - Pure utility functions for ratio calculation, tempo comparison, and preset matching
+- `app/analysis/[id].tsx` - Video analysis screen with detected tempo display and manual adjustment
+- `components/video/AnalysisResults.tsx` - Displays detected frames, timing, ratio, and confidence
+- `components/video/FrameAdjuster.tsx` - Manual frame adjustment with increment/decrement controls
+- `components/video/TempoComparison.tsx` - Visual comparison between detected and target tempo
 
 ## Development Commands
 
@@ -439,3 +447,145 @@ interface FrameMarker {
 - MockVideoPlayer class with all player methods and properties
 - `useVideoPlayer` returns mock instance with event subscription support
 - `VideoView` component mock for render tests
+
+### Swing Detection (V2 Feature)
+
+The swing detection system detects swing phases (takeaway, top, impact) from recorded videos using motion analysis.
+
+**Type Definitions (`types/swingDetection.ts`):**
+- `SwingDetectionResult` - Raw result from detection (frame numbers, confidence, processing time)
+- `SwingDetector` - Interface for swing detection implementations (mock or ML)
+- `FrameAnalysis` - Analysis result for a single video frame
+- `FramePosition` - Normalized x/y coordinates (0-1 range)
+- `BodyPose` - Detected body keypoints (shoulders, hips, wrists)
+- `TempoComparison` - Result of comparing detected tempo to a target preset
+
+**SwingDetector Interface:**
+```typescript
+interface SwingDetector {
+  isReady(): boolean
+  initialize(): Promise<void>
+  detectSwingPhases(videoUri: string, fps: number): Promise<SwingDetectionResult>
+  dispose(): void
+}
+```
+
+**Factory Function (`lib/swingDetector.ts`):**
+- `createSwingDetector(options?)` - Creates a detector instance
+  - `{ type: 'auto' }` - Auto-select best available (default)
+  - `{ type: 'ml' }` - Force ML-based detector
+  - `{ type: 'mock' }` - Force mock detector (for testing)
+- `isMLDetectionAvailable()` - Checks if ML detection is available
+
+**ML Implementation (`lib/mlSwingDetector.ts`):**
+- Uses motion analysis on extracted video frames
+- Extracts frames using expo-video-thumbnails
+- Analyzes motion patterns to detect swing phases:
+  - **Takeaway**: First significant motion (club starts moving)
+  - **Top**: Pause/direction change at top of backswing
+  - **Impact**: Peak motion during downswing
+- Falls back to mock if frame extraction fails
+
+**Frame Extraction (`lib/frameExtractor.ts`):**
+- `extractFrameAt(videoUri, timeMs, options?)` - Extract single frame at time
+- `extractFrames(videoUri, count, durationMs, options?)` - Extract multiple evenly distributed frames
+- `getFrameCount(durationMs, fps)` - Calculate total frames
+- `frameToTime(frameNumber, fps)` / `timeToFrame(timeMs, fps)` - Convert between frames and time
+
+**Motion Analysis (`lib/poseAnalyzer.ts`):**
+- `analyzeMotion(frames, motionScores)` - Combine frames with motion scores
+- `detectPeakMotion(analysis)` - Find frame with highest motion
+- `findMotionStart(analysis, threshold?)` - Find first significant motion
+- `findMotionPeak(analysis, startIndex, endIndex)` - Find peak in range
+- `findMotionEnd(analysis, startIndex, threshold?)` - Find motion drop-off
+- `detectSwingPhases(analysis, options?)` - Detect all three swing phases
+
+**Mock Implementation (`lib/mockSwingDetector.ts`):**
+- `createMockSwingDetector()` - Creates a mock detector for development/testing
+- Simulates ML detection with realistic timing delays
+- Generates frame positions at ~10% (takeaway), ~60% (top), ~80% (impact) of video
+- Returns confidence scores between 0.7-0.95
+
+**Utility Functions (`lib/swingAnalysisUtils.ts`):**
+- `calculateRatioFromFrames(takeaway, top, impact)` - Calculate backswing/downswing ratio
+- `compareToTargetTempo(analysis, preset)` - Compare detected tempo to target preset
+- `getTempoFeedback(comparison)` - Generate human-readable feedback string
+- `findClosestPreset(ratio, mode)` - Find the closest preset for a detected ratio
+
+**Usage Example:**
+```typescript
+// Auto-select best available detector
+const detector = createSwingDetector()
+await detector.initialize()
+
+const result = await detector.detectSwingPhases(videoUri, fps)
+const ratio = calculateRatioFromFrames(
+  result.takeawayFrame,
+  result.topFrame,
+  result.impactFrame
+)
+
+const preset = findClosestPreset(ratio, 'long')
+console.log(`Recommended tempo: ${preset.label}`) // "24/8"
+console.log(`Confidence: ${result.confidence}`)
+
+detector.dispose()
+```
+
+**Future Enhancements:**
+The current ML implementation uses heuristic-based motion analysis. Future versions could integrate:
+- TensorFlow Lite with MoveNet pose detection models
+- MediaPipe for real-time pose estimation
+- Custom golf swing-specific ML models
+
+### Video Analysis Screen (V2 Feature)
+
+The analysis screen (`app/analysis/[id].tsx`) displays detected swing tempo and allows manual adjustment of frame markers.
+
+**Screen States:**
+- `loading` - Loading video from storage
+- `not-found` - Video ID not found
+- `needs-analysis` - Video loaded but no analysis yet
+- `ready` - Analysis complete, showing results
+
+**Components:**
+
+`AnalysisResults` (`components/video/AnalysisResults.tsx`):
+- Displays detected frame positions (takeaway, top, impact) with colored dots
+- Shows backswing/downswing timing in frames and seconds
+- Displays calculated ratio (e.g., "3.0:1") and confidence percentage
+- Compares detected ratio to user's target preset
+
+`FrameAdjuster` (`components/video/FrameAdjuster.tsx`):
+- Manual adjustment of swing frame markers
+- Increment/decrement buttons for takeaway, top, impact frames
+- Validates frame ordering: takeaway < top < impact
+- Live ratio display updates as frames change
+- "Auto Detect" button to re-run ML detection
+- Sets `manuallyAdjusted: true` when user changes frames
+
+`TempoComparison` (`components/video/TempoComparison.tsx`):
+- Visual comparison of detected vs target tempo
+- Shows detected ratio and target ratio side-by-side
+- Comparison indicator: checkmark (similar), arrow-up (faster), arrow-down (slower)
+- Percentage difference display
+- Feedback message from `getTempoFeedback()`
+- Recommended preset based on detected ratio
+
+**Frame Marker Colors:**
+- Takeaway: `#4CAF50` (green)
+- Top: `#FFC107` (yellow)
+- Impact: `#F44336` (red)
+
+**Screen Flow:**
+1. Screen loads video by ID from `videoStorage`
+2. If no analysis exists, shows "Analyze Swing" button
+3. User clicks button → runs ML detection via `createSwingDetector()`
+4. Results displayed with VideoPlayer (markers), AnalysisResults, FrameAdjuster, TempoComparison
+5. User can manually adjust frames via FrameAdjuster
+6. "Save Changes" button persists via `videoStorage.updateVideoAnalysis()`
+
+**Navigation:**
+- Accessed via `/analysis/[id]` route
+- Back button returns to previous screen
+- Video ID passed as route parameter
