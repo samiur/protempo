@@ -48,6 +48,7 @@ jobs:
             ios
             ~/Library/Caches/CocoaPods
           key: ${{ runner.os }}-ios-${{ hashFiles('app.json', 'package.json', 'package-lock.json', '.detoxrc.js') }}
+          save-always: true
 
       - name: Generate native projects
         if: steps.native-cache.outputs.cache-hit != 'true'
