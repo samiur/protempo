@@ -39,6 +39,6 @@
       "favicon": "./assets/favicon.png",
       "bundler": "metro"
     },
-    "plugins": ["expo-router", "react-native-vision-camera"]
+    "plugins": ["expo-router", "react-native-vision-camera", "expo-video"]
   }
 }

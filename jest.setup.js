@@ -37,6 +37,7 @@ jest.mock('@react-native-community/slider', () => {
         testID: props.testID,
         accessibilityRole: props.accessibilityRole || 'adjustable',
         accessibilityLabel: props.accessibilityLabel,
+        accessibilityValue: props.accessibilityValue,
         minimumValue: props.minimumValue,
         maximumValue: props.maximumValue,
         step: props.step,
@@ -185,6 +186,193 @@ jest.mock('expo-video-thumbnails', () => ({
     height: 180,
   }),
 }))
+
+// Mock expo-video module globally
+jest.mock('expo-video', () => {
+  const React = require('react')
+  const { View } = require('react-native')
+
+  // Mock VideoPlayer class
+  class MockVideoPlayer {
+    constructor() {
+      this._currentTime = 0
+      this._duration = 10
+      this._playing = false
+      this._playbackRate = 1
+      this._muted = false
+      this._volume = 1
+      this._loop = false
+      this._status = 'readyToPlay'
+      this._listeners = new Map()
+    }
+
+    get currentTime() {
+      return this._currentTime
+    }
+
+    set currentTime(value) {
+      this._currentTime = value
+      this._emit('timeUpdate', { currentTime: value })
+    }
+
+    get duration() {
+      return this._duration
+    }
+
+    get playing() {
+      return this._playing
+    }
+
+    get playbackRate() {
+      return this._playbackRate
+    }
+
+    set playbackRate(value) {
+      this._playbackRate = value
+      this._emit('playbackRateChange', { playbackRate: value })
+    }
+
+    get muted() {
+      return this._muted
+    }
+
+    set muted(value) {
+      this._muted = value
+      this._emit('mutedChange', { muted: value })
+    }
+
+    get volume() {
+      return this._volume
+    }
+
+    set volume(value) {
+      this._volume = value
+    }
+
+    get loop() {
+      return this._loop
+    }
+
+    set loop(value) {
+      this._loop = value
+    }
+
+    get status() {
+      return this._status
+    }
+
+    play() {
+      this._playing = true
+      this._emit('playingChange', { isPlaying: true })
+    }
+
+    pause() {
+      this._playing = false
+      this._emit('playingChange', { isPlaying: false })
+    }
+
+    replay() {
+      this._currentTime = 0
+      this._playing = true
+      this._emit('timeUpdate', { currentTime: 0 })
+      this._emit('playingChange', { isPlaying: true })
+    }
+
+    seekBy(seconds) {
+      this._currentTime = Math.max(0, Math.min(this._duration, this._currentTime + seconds))
+      this._emit('timeUpdate', { currentTime: this._currentTime })
+    }
+
+    release() {
+      this._listeners.clear()
+    }
+
+    addListener(event, callback) {
+      if (!this._listeners.has(event)) {
+        this._listeners.set(event, new Set())
+      }
+      this._listeners.get(event).add(callback)
+      return {
+        remove: () => {
+          this._listeners.get(event)?.delete(callback)
+        },
+      }
+    }
+
+    _emit(event, data) {
+      const listeners = this._listeners.get(event)
+      if (listeners) {
+        listeners.forEach((callback) => callback(data))
+      }
+    }
+
+    // Test helpers
+    _setDuration(duration) {
+      this._duration = duration
+    }
+
+    _setStatus(status) {
+      this._status = status
+      this._emit('statusChange', { status })
+    }
+  }
+
+  // Mock useVideoPlayer hook
+  const useVideoPlayer = jest.fn((_source) => {
+    const [player] = React.useState(() => new MockVideoPlayer())
+    return player
+  })
+
+  // Mock VideoView component
+  const VideoView = React.forwardRef((props, ref) => {
+    React.useImperativeHandle(ref, () => ({
+      enterFullscreen: jest.fn(),
+      exitFullscreen: jest.fn(),
+    }))
+
+    return React.createElement(View, {
+      testID: props.testID || 'video-view',
+      ...props,
+    })
+  })
+
+  // Mock useEvent hook for subscribing to player events
+  const useEvent = jest.fn((player, event, initialValue) => {
+    const [value, setValue] = React.useState(initialValue)
+
+    React.useEffect(() => {
+      if (!player) return
+
+      const subscription = player.addListener(event, (data) => {
+        setValue(data)
+      })
+
+      return () => subscription.remove()
+    }, [player, event])
+
+    return value
+  })
+
+  // Mock useEventListener hook
+  const useEventListener = jest.fn((player, event, callback) => {
+    React.useEffect(() => {
+      if (!player) return
+
+      const subscription = player.addListener(event, callback)
+
+      return () => subscription.remove()
+    }, [player, event, callback])
+  })
+
+  return {
+    VideoView,
+    useVideoPlayer,
+    useEvent,
+    useEventListener,
+    // Export MockVideoPlayer for test assertions
+    __MockVideoPlayer: MockVideoPlayer,
+  }
+})
 
 // Mock react-native-vision-camera module globally
 jest.mock('react-native-vision-camera', () => {

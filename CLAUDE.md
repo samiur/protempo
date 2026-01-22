@@ -80,6 +80,10 @@ ProTempo is a cross-platform mobile app that helps golfers improve swing consist
 - `components/video/CameraPreview.tsx` - Camera preview component with optional grid overlay
 - `components/video/RecordButton.tsx` - Large circular record button with recording state indicators
 - `components/video/RecordingOverlay.tsx` - Recording indicator, timer display, and FPS badge overlay
+- `hooks/useVideoPlayback.ts` - React hook for video playback state, frame navigation, speed control
+- `components/video/VideoPlayer.tsx` - Composable video player with play/pause, scrubber, and frame controls
+- `components/video/VideoScrubber.tsx` - Slider with colored frame markers for swing phase visualization
+- `components/video/FrameControls.tsx` - Frame-by-frame navigation buttons and playback speed selector
 
 ## Development Commands
 
@@ -377,3 +381,61 @@ The `useVideoCapture` hook provides camera recording functionality for capturing
 - Android: Camera and microphone permissions granted via plugin
 
 **Note:** VisionCamera requires native builds (won't work in Expo Go). Use `npx expo prebuild` to generate native projects.
+
+### Video Playback (V2 Feature - In Progress)
+
+The video playback system provides frame-by-frame analysis for recorded swing videos using expo-video.
+
+**Hook Interface (`hooks/useVideoPlayback.ts`):**
+- `player` - The expo-video player instance
+- `isPlaying` - Whether the video is currently playing
+- `currentFrame` - Current frame number (0-indexed)
+- `totalFrames` - Total number of frames in the video
+- `playbackSpeed` - Current playback speed (0.25 to 2)
+- `currentTimeMs` - Current time in milliseconds
+- `play()`, `pause()`, `togglePlayPause()` - Playback controls
+- `nextFrame()`, `previousFrame()` - Frame-by-frame navigation
+- `seekToFrame(frame)` - Seek to specific frame (pauses playback)
+- `seekToTimeMs(ms)` - Seek to specific time
+- `setPlaybackSpeed(speed)` - Set playback speed (0.25x, 0.5x, 1x, 2x)
+
+**Components:**
+
+`VideoPlayer` (`components/video/VideoPlayer.tsx`):
+- Composable video player for swing analysis
+- Integrates VideoView, VideoScrubber, and FrameControls
+- Play/pause overlay button
+- Receives optional `markers` for swing phase visualization
+- Calls `onFrameChange` callback when frame changes
+
+`VideoScrubber` (`components/video/VideoScrubber.tsx`):
+- Slider for seeking through video frames
+- Displays colored markers for swing phases (takeaway, top, impact)
+- Props: `currentFrame`, `totalFrames`, `onSeek`, `markers`
+- Marker positions calculated as percentage of total frames
+
+`FrameControls` (`components/video/FrameControls.tsx`):
+- Previous/next frame buttons with skip icons
+- Frame counter display (e.g., "50 / 149")
+- Playback speed selector dropdown (0.25x, 0.5x, 1x)
+- Buttons auto-disable at first/last frame
+
+**Frame Marker Interface:**
+```typescript
+interface FrameMarker {
+  frame: number    // Frame number to mark
+  color: string    // Marker color (e.g., '#00FF00')
+  label: string    // Accessible label
+}
+```
+
+**expo-video Integration:**
+- Uses `useVideoPlayer(uri, setup)` for player creation
+- Subscribes to `timeUpdate`, `playToEnd`, `playingChange` events via `addListener`
+- Sets `timeUpdateEventInterval` to 1/fps for frame-accurate updates
+- Frame calculation: `frame = Math.floor(currentTime * fps)`
+
+**Jest Mocking (`jest.setup.js`):**
+- MockVideoPlayer class with all player methods and properties
+- `useVideoPlayer` returns mock instance with event subscription support
+- `VideoView` component mock for render tests

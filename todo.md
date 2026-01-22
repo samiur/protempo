@@ -1,7 +1,7 @@
 # ProTempo - Implementation Progress
 
 **Status:** V1 Complete | V2 In Progress
-**V2 Tests:** 730 unit tests + 30 E2E tests passing
+**V2 Tests:** 821 unit tests + 30 E2E tests passing
 **CI/CD:** GitHub Actions configured and running
 **Current Priority:** Video Analysis (Phase 11)
 
@@ -41,7 +41,7 @@
 - [x] **Prompt 25:** Camera Capture Hook & Permissions
 - [x] **Prompt 25A:** Migrate to VisionCamera for High-FPS
 - [x] **Prompt 26:** Video Recording Screen
-- [ ] **Prompt 27:** Video Player Component & Frame Scrubbing
+- [x] **Prompt 27:** Video Player Component & Frame Scrubbing
 - [ ] **Prompt 28:** Swing Detector Interface & Mock Implementation
 - [ ] **Prompt 29:** ML Model Implementation
 - [ ] **Prompt 30:** Analysis Results Screen & Manual Adjustment
@@ -59,11 +59,11 @@
 
 ## Next Up
 
-1. **Prompt 27:** Video Player Component & Frame Scrubbing
-2. **Prompt 28:** Swing Detector Interface & Mock
-3. **Prompt 29:** ML Model Implementation
-4. **Prompt 30:** Analysis Results Screen
-5. **Prompt 31:** Tempo Calibration Flow
+1. **Prompt 28:** Swing Detector Interface & Mock
+2. **Prompt 29:** ML Model Implementation
+3. **Prompt 30:** Analysis Results Screen
+4. **Prompt 31:** Tempo Calibration Flow
+5. **Prompt 32:** Video Library Screen & E2E Tests
 
 Reference `plan.md` for detailed prompt instructions. Follow TDD.
 
@@ -90,3 +90,4 @@ Record 10 swings to establish baseline tempo:
 - **2026-01-20:** Prompt 25 complete - Camera Capture Hook & Permissions
 - **2026-01-20:** Prompt 25A complete - Migrate to VisionCamera for High-FPS
 - **2026-01-21:** Prompt 26 complete - Video Recording Screen
+- **2026-01-22:** Prompt 27 complete - Video Player Component & Frame Scrubbing
